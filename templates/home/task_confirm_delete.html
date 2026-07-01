@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar tarea{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Eliminar tarea</h2>
+    <p>¿Seguro que deseas eliminar la tarea <strong>{{ object }}</strong>?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit">Sí, eliminar</button>
+        <a class="btn btn-secondary" href="{% url 'task_list' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar avance{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Registrar avance semanal</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>Desarrollador</label>
+        <select name="developer" required>
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <label>Inicio de semana</label>
+        <input type="date" name="week_start" required>
+        <label>Cuota de servicios</label>
+        <input type="number" name="quota_services" min="0" value="0">
+        <label>Servicios completados</label>
+        <input type="number" name="completed_services" min="0" value="0">
+        <label>Avance %</label>
+        <input type="number" name="progress_percentage" min="0" max="100" value="0">
+        <label>Observaciones</label>
+        <textarea name="notes"></textarea>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-secondary" href="{% url 'productivity_dashboard' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

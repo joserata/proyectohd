@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Desarrollo{% endblock %}</title>
+    <style>
+        :root {
+            --primary: #0f4c81;
+            --secondary: #1f6f8b;
+            --accent: #f5a623;
+            --light: #f7f9fc;
+            --border: #dce4ee;
+            --text: #23374d;
+        }
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--light); color: var(--text); }
+        .topbar { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .topbar h1 { margin: 0; font-size: 24px; }
+        .nav a { color: white; margin-left: 14px; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1200px; margin: 24px auto; padding: 0 20px 30px; }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; text-decoration: none; margin-right: 8px; margin-top: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e9eef5; color: var(--text); }
+        .btn-danger { background: #c0392b; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { border-bottom: 1px solid var(--border); padding: 10px; text-align: left; }
+        th { background: #f1f5f9; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .stat-box { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+        .muted { color: #6b7a90; }
+        form input, form select, form textarea { width: 100%; padding: 10px; margin: 8px 0 14px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+        .footer { text-align: center; color: #6b7a90; padding: 20px 0 40px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    {% include 'includes/header.html' %}
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    {% include 'includes/footer.html' %}
+</body>
+</html>

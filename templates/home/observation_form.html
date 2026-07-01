@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Observación{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Registrar observación o novedad</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>Desarrollador</label>
+        <select name="developer" required>
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <label>Tarea</label>
+        <select name="task">
+            <option value="">Sin tarea relacionada</option>
+            {% for task in tasks %}
+                <option value="{{ task.id }}">{{ task.title }}</option>
+            {% endfor %}
+        </select>
+        <label>Título</label>
+        <input type="text" name="title" required>
+        <label>Descripción</label>
+        <textarea name="description" required></textarea>
+        <label>Severidad</label>
+        <select name="severity">
+            <option value="low">Baja</option>
+            <option value="medium">Media</option>
+            <option value="high">Alta</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-secondary" href="{% url 'productivity_dashboard' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

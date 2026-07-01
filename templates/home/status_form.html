@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Estados{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Estados</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>Nombre</label>
+        <input type="text" name="name" required>
+        <label>Categoría</label>
+        <select name="category">
+            <option value="project">Proyecto</option>
+            <option value="task">Tarea</option>
+        </select>
+        <label>Color</label>
+        <input type="text" name="color" value="secondary">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-secondary" href="/">Cancelar</a>
+    </form>
+    <h3>Estados existentes</h3>
+    <ul>
+        {% for status in statuses %}
+            <li>{{ status.name }} ({{ status.get_category_display }})</li>
+        {% empty %}
+            <li>No hay estados registrados.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

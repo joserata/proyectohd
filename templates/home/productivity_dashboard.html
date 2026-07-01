@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Productividad{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Seguimiento de productividad</h2>
+    <p class="muted">Resumen dinámico por producción y rendimiento, con métricas de cada perfil de desarrollador.</p>
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;">
+        <select name="developer">
+            <option value="">Todos los desarrolladores</option>
+            {% for user in users %}
+                <option value="{{ user.id }}" {% if selected_developer == user.id|stringformat:'s' %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <select name="week">
+            <option value="">Todas las semanas</option>
+            {% for week in weeks %}
+                <option value="{{ week|date:'Y-m-d' }}" {% if selected_week == week|date:'Y-m-d' %}selected{% endif %}>{{ week }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        <a class="btn btn-secondary" href="{% url 'productivity_dashboard' %}">Limpiar</a>
+    </form>
+    <a class="btn btn-primary" href="{% url 'register_performance' %}">Registrar avance</a>
+    <a class="btn btn-secondary" href="{% url 'create_observation' %}">Agregar observación</a>
+</div>
+
+<div class="card">
+    <h3>Resumen dinámico por producción y rendimiento</h3>
+    <div class="stats">
+        {% for item in dev_summary %}
+            <div class="stat-box">
+                <h4>{{ item.user.username }}</h4>
+                <h2>{{ item.progress }}%</h2>
+                <p class="muted">{{ item.completed_tasks }}/{{ item.tasks_count }} tareas cerradas</p>
+                <small>{{ item.latest_record.notes|default:'Sin observaciones recientes' }}</small>
+            </div>
+        {% empty %}
+            <div class="stat-box">
+                <p class="muted">No hay perfiles de desarrollador con datos cargados.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Perfil de desarrollador</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Desarrollador</th>
+                <th>Producción</th>
+                <th>Rendimiento</th>
+                <th>Estado</th>
+                <th>Última semana</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in dev_summary %}
+                <tr>
+                    <td>{{ item.user.username }}</td>
+                    <td>{{ item.completed_tasks }}/{{ item.tasks_count }}</td>
+                    <td>{{ item.progress }}%</td>
+                    <td>{% if item.progress >= 80 %}Excelente{% elif item.progress >= 60 %}Bueno{% elif item.progress >= 40 %}En mejora{% else %}En revisión{% endif %}</td>
+                    <td>{{ item.latest_record.week_start|default:'Sin registro' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">No hay desarrolladores registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Gráfico lineal de rendimiento y productividad</h3>
+    <div style="background:#f8fafc;padding:16px;border-radius:10px;">
+        {% if trend_data %}
+            <div style="display:grid;gap:16px;">
+                {% for series in trend_data %}
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <strong>{{ series.name }}</strong>
+                            <span class="muted">Evolución semanal</span>
+                        </div>
+                        <svg viewBox="0 0 100 100" style="width:100%;height:180px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px;box-sizing:border-box;">
+                            <line x1="10" y1="90" x2="90" y2="90" stroke="#cbd5e1" stroke-width="1"></line>
+                            <line x1="10" y1="20" x2="10" y2="90" stroke="#cbd5e1" stroke-width="1"></line>
+                            <polyline fill="none" stroke="#0f4c81" stroke-width="2" points="{{ series.points_svg }}"></polyline>
+                            {% for point in series.points %}
+                                <circle cx="{{ point.x }}" cy="{{ point.y }}" r="1.5" fill="#0f4c81"></circle>
+                                <text x="{{ point.x }}" y="96" text-anchor="middle" fill="#6b7a90" font-size="3">{{ point.week }}</text>
+                            {% empty %}
+                                <text x="10" y="50" fill="#6b7a90" font-size="4">Sin datos históricos para este usuario.</text>
+                            {% endfor %}
+                        </svg>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">No hay registros de productividad todavía.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Resumen dinámico por desarrollador</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Desarrollador</th>
+                <th>Tareas asignadas</th>
+                <th>Tareas completadas</th>
+                <th>% avance</th>
+                <th>Última semana</th>
+                <th>Detalle</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in dev_summary %}
+                <tr>
+                    <td>{{ item.user.username }}</td>
+                    <td>{{ item.tasks_count }}</td>
+                    <td>{{ item.completed_tasks }}</td>
+                    <td>{{ item.progress }}%</td>
+                    <td>{{ item.latest_record.week_start|default:'Sin registro' }}</td>
+                    <td>{{ item.latest_record.notes|default:'Sin observaciones' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">No hay desarrolladores registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Detalle semanal</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Desarrollador</th>
+                <th>Semana</th>
+                <th>Cuota</th>
+                <th>Completados</th>
+                <th>% avance</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in performance %}
+                <tr>
+                    <td>{{ record.developer.username }}</td>
+                    <td>{{ record.week_start }}</td>
+                    <td>{{ record.quota_services }}</td>
+                    <td>{{ record.completed_services }}</td>
+                    <td>{{ record.performance_ratio }}%</td>
+                    <td>{{ record.notes|default:'Sin notas' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">No hay registros de desempeño.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Observaciones y novedades</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Desarrollador</th>
+                <th>Título</th>
+                <th>Severidad</th>
+                <th>Detalle</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for observation in observations %}
+                <tr>
+                    <td>{{ observation.developer.username }}</td>
+                    <td>{{ observation.title }}</td>
+                    <td>{{ observation.get_severity_display }}</td>
+                    <td>{{ observation.description }}</td>
+                    <td>{{ observation.created_at|date:'d/m/Y H:i' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">No hay observaciones registradas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

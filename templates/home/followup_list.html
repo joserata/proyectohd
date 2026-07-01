@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Seguimientos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Seguimientos</h2>
+    <a class="btn btn-primary" href="{% url 'followup_create' %}">Nuevo seguimiento</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Tarea</th>
+                <th>Comentario</th>
+                <th>Creado por</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for followup in followups %}
+                <tr>
+                    <td>{{ followup.task.title }}</td>
+                    <td>{{ followup.comment }}</td>
+                    <td>{{ followup.created_by.username|default:'Sin usuario' }}</td>
+                    <td>{{ followup.created_at|date:'d/m/Y H:i' }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'followup_update' followup.pk %}">Editar</a>
+                        <a class="btn btn-danger" href="{% url 'followup_delete' followup.pk %}">Eliminar</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">No hay seguimientos registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Proyectos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Proyectos</h2>
+    <a class="btn btn-primary" href="{% url 'project_create' %}">Nuevo proyecto</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+                <tr>
+                    <td>{{ project.name }}</td>
+                    <td>{{ project.status.name|default:'Sin estado' }}</td>
+                    <td>{{ project.created_at|date:'d/m/Y' }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'project_update' project.pk %}">Editar</a>
+                        <a class="btn btn-danger" href="{% url 'project_delete' project.pk %}">Eliminar</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">No hay proyectos registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

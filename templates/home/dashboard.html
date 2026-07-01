@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Tablero ejecutivo{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Tablero ejecutivo de desarrollo</h2>
+    <p class="muted">Vista operativa para seguimiento de servicios, avances por usuario, calidad, pruebas y publicación.</p>
+</div>
+
+<div class="stats">
+    <div class="stat-box">
+        <h3>Proyectos</h3>
+        <h2>{{ total_projects }}</h2>
+    </div>
+    <div class="stat-box">
+        <h3>Servicios / tareas</h3>
+        <h2>{{ total_tasks }}</h2>
+    </div>
+    <div class="stat-box">
+        <h3>Seguimientos</h3>
+        <h2>{{ total_followups }}</h2>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Resumen por desarrollador</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Desarrollador</th>
+                <th>Tareas</th>
+                <th>Completadas</th>
+                <th>Avance</th>
+                <th>Última semana</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in user_summary %}
+                <tr>
+                    <td>{{ item.user.username }}</td>
+                    <td>{{ item.tasks_count }}</td>
+                    <td>{{ item.completed_tasks }}</td>
+                    <td>{{ item.progress }}%</td>
+                    <td>{{ item.latest_record.week_start|default:'Sin registro' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">No hay desarrolladores registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Estado de servicios</h3>
+    <ul>
+        {% for status in statuses %}
+            <li>{{ status.name }}: {{ status.task_count }}</li>
+        {% empty %}
+            <li>No hay estados creados.</li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-primary" href="/estados/">Crear estado</a>
+</div>
+
+<div class="card">
+    <h3>Flujo de desarrollo a producción</h3>
+    <div class="stats">
+        {% for stage in workflow_stages %}
+            <div class="stat-box">
+                <h4>{{ stage.name }}</h4>
+                <h2>{{ stage.count }}</h2>
+                <p class="muted">{{ stage.description }}</p>
+            </div>
+        {% empty %}
+            <div class="stat-box">
+                <p class="muted">Aún no hay etapas definidas para el flujo.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Checklist de calidad y publicación</h3>
+    <ul>
+        <li>✓ Código listo para revisión</li>
+        <li>✓ Servicio probado funcionalmente</li>
+        <li>✓ Validación de reglas de negocio</li>
+        <li>✓ Aprobación de QA / pruebas</li>
+        <li>✓ Revisión de seguridad y rendimiento</li>
+        <li>✓ Publicación en producción autorizada</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h3>Actividades recientes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Tarea</th>
+                <th>Proyecto</th>
+                <th>Estado</th>
+                <th>Asignado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in recent_tasks %}
+                <tr>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.project.name }}</td>
+                    <td>{{ task.status.name|default:'Sin estado' }}</td>
+                    <td>{{ task.assigned_to.username|default:'Sin asignar' }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">No hay tareas registradas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <a class="btn btn-primary" href="/productividad/">Ver productividad</a>
+    <a class="btn btn-secondary" href="/productividad/registrar/">Registrar avance</a>
+    <a class="btn btn-secondary" href="/observaciones/nueva/">Agregar observación</a>
+    <a class="btn btn-primary" href="/proyectos/">Gestionar proyectos</a>
+    <a class="btn btn-primary" href="/tareas/">Gestionar tareas</a>
+    <a class="btn btn-primary" href="/seguimientos/">Gestionar seguimientos</a>
+</div>
+{% endblock %}
