@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DeveloperPerformance, FollowUp, Observation, Project, Status, Task
+from .models import DeveloperPerformance, FollowUp, Observation, PriorityActivity, Project, Status, Task
 
 
 @admin.register(Status)

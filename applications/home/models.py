@@ -107,3 +107,32 @@ class Observation(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PriorityActivity(models.Model):
+    PRIORITY_CHOICES = [
+        ('critical', 'Crítica'),
+        ('high', 'Alta'),
+        ('medium', 'Media'),
+        ('low', 'Baja'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('in_progress', 'En progreso'),
+        ('done', 'Completada'),
+    ]
+
+    title = models.CharField(max_length=250)
+    description = models.TextField(blank=True)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='high')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='priority_activities', on_delete=models.SET_NULL, null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['priority', 'due_date', 'created_at']
+
+    def __str__(self):
+        return self.title

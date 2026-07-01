@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Actividades prioritarias{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Actividades prioritarias</h2>
+    <p class="muted">Carga y verifica actividades críticas como ambiente de pruebas, seguridad, control de repositorio, cambio estructural y más.</p>
+</div>
+
+<div class="card">
+    <h3>{% if editing_activity %}Editar actividad{% else %}Nueva actividad{% endif %}</h3>
+    <form method="post">
+        {% csrf_token %}
+        {% if editing_activity %}<input type="hidden" name="activity_id" value="{{ editing_activity.pk }}">{% endif %}
+        <label>Título</label>
+        <input type="text" name="title" value="{{ editing_activity.title|default:'' }}" required>
+
+        <label>Descripción</label>
+        <textarea name="description" rows="3">{{ editing_activity.description|default:'' }}</textarea>
+
+        <label>Prioridad</label>
+        <select name="priority">
+            <option value="critical" {% if editing_activity and editing_activity.priority == 'critical' %}selected{% endif %}>Crítica</option>
+            <option value="high" {% if editing_activity and editing_activity.priority == 'high' %}selected{% endif %}>Alta</option>
+            <option value="medium" {% if editing_activity and editing_activity.priority == 'medium' %}selected{% endif %}>Media</option>
+            <option value="low" {% if editing_activity and editing_activity.priority == 'low' %}selected{% endif %}>Baja</option>
+        </select>
+
+        <label>Estado</label>
+        <select name="status">
+            <option value="pending" {% if editing_activity and editing_activity.status == 'pending' %}selected{% endif %}>Pendiente</option>
+            <option value="in_progress" {% if editing_activity and editing_activity.status == 'in_progress' %}selected{% endif %}>En progreso</option>
+            <option value="done" {% if editing_activity and editing_activity.status == 'done' %}selected{% endif %}>Completada</option>
+        </select>
+
+        <label>Asignado a</label>
+        <select name="assigned_to">
+            <option value="">Sin asignar</option>
+            {% for user in users %}
+                <option value="{{ user.id }}" {% if editing_activity and editing_activity.assigned_to_id == user.id %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Fecha límite</label>
+        <input type="date" name="due_date" value="{{ editing_activity.due_date|default:'' }}">
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+            <button class="btn btn-primary" type="submit">{% if editing_activity %}Actualizar actividad{% else %}Guardar actividad{% endif %}</button>
+            {% if editing_activity %}<a class="btn btn-secondary" href="{% url 'priority_activities' %}">Cancelar</a>{% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Filtros</h3>
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <select name="priority">
+            <option value="">Todas las prioridades</option>
+            <option value="critical" {% if selected_priority == 'critical' %}selected{% endif %}>Crítica</option>
+            <option value="high" {% if selected_priority == 'high' %}selected{% endif %}>Alta</option>
+            <option value="medium" {% if selected_priority == 'medium' %}selected{% endif %}>Media</option>
+            <option value="low" {% if selected_priority == 'low' %}selected{% endif %}>Baja</option>
+        </select>
+        <select name="status">
+            <option value="">Todos los estados</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pendiente</option>
+            <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>En progreso</option>
+            <option value="done" {% if selected_status == 'done' %}selected{% endif %}>Completada</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+        <a class="btn btn-secondary" href="{% url 'priority_activities' %}">Limpiar</a>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Resumen ejecutivo</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+        {% for item in status_summary %}
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                <div class="muted">{{ item.label }}</div>
+                <div style="font-size:1.4rem;font-weight:700;">{{ item.value }}</div>
+            </div>
+        {% endfor %}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px;">
+        {% for item in priority_summary %}
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                <div class="muted">{{ item.label }}</div>
+                <div style="font-size:1.4rem;font-weight:700;">{{ item.value }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Tablero kanban</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div data-column="pending" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;min-height:180px;">
+            <h4 style="margin-top:0;">Pendiente</h4>
+            {% for activity in activities %}
+                {% if activity.status == 'pending' %}
+                    <div class="kanban-card" data-activity-id="{{ activity.pk }}" draggable="true" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px;cursor:grab;">
+                        <strong>{{ activity.title }}</strong>
+                        <div class="muted" style="font-size:0.85rem;margin-top:4px;">{{ activity.get_priority_display }}</div>
+                        <div style="font-size:0.85rem;margin-top:6px;">{{ activity.assigned_to.username|default:'Sin asignar' }}</div>
+                        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <a class="btn btn-secondary" href="{% url 'priority_activity_update' activity.pk %}">Editar</a>
+                            <form method="post" action="{% url 'priority_activity_delete' activity.pk %}" onsubmit="return confirm('¿Eliminar esta actividad?');">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <div class="muted">Sin actividades</div>
+            {% endfor %}
+        </div>
+        <div data-column="in_progress" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;min-height:180px;">
+            <h4 style="margin-top:0;">En progreso</h4>
+            {% for activity in activities %}
+                {% if activity.status == 'in_progress' %}
+                    <div class="kanban-card" data-activity-id="{{ activity.pk }}" draggable="true" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px;cursor:grab;">
+                        <strong>{{ activity.title }}</strong>
+                        <div class="muted" style="font-size:0.85rem;margin-top:4px;">{{ activity.get_priority_display }}</div>
+                        <div style="font-size:0.85rem;margin-top:6px;">{{ activity.assigned_to.username|default:'Sin asignar' }}</div>
+                        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <a class="btn btn-secondary" href="{% url 'priority_activity_update' activity.pk %}">Editar</a>
+                            <form method="post" action="{% url 'priority_activity_delete' activity.pk %}" onsubmit="return confirm('¿Eliminar esta actividad?');">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <div class="muted">Sin actividades</div>
+            {% endfor %}
+        </div>
+        <div data-column="done" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;min-height:180px;">
+            <h4 style="margin-top:0;">Completada</h4>
+            {% for activity in activities %}
+                {% if activity.status == 'done' %}
+                    <div class="kanban-card" data-activity-id="{{ activity.pk }}" draggable="true" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px;cursor:grab;">
+                        <strong>{{ activity.title }}</strong>
+                        <div class="muted" style="font-size:0.85rem;margin-top:4px;">{{ activity.get_priority_display }}</div>
+                        <div style="font-size:0.85rem;margin-top:6px;">{{ activity.assigned_to.username|default:'Sin asignar' }}</div>
+                        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <a class="btn btn-secondary" href="{% url 'priority_activity_update' activity.pk %}">Editar</a>
+                            <form method="post" action="{% url 'priority_activity_delete' activity.pk %}" onsubmit="return confirm('¿Eliminar esta actividad?');">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <div class="muted">Sin actividades</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Listado de actividades</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Actividad</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Asignado</th>
+                <th>Fecha límite</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %}
+                <tr>
+                    <td>{{ activity.title }}</td>
+                    <td>{{ activity.get_priority_display }}</td>
+                    <td>{{ activity.get_status_display }}</td>
+                    <td>{{ activity.assigned_to.username|default:'Sin asignar' }}</td>
+                    <td>{{ activity.due_date|default:'Sin fecha' }}</td>
+                    <td>{{ activity.description|default:'Sin detalle' }}</td>
+                    <td>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <a class="btn btn-secondary" href="{% url 'priority_activity_update' activity.pk %}">Editar</a>
+                            <form method="post" action="{% url 'priority_activity_delete' activity.pk %}" onsubmit="return confirm('¿Eliminar esta actividad?');">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">No hay actividades registradas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.kanban-card');
+        const columns = document.querySelectorAll('[data-column]');
+        let draggedId = null;
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', function (event) {
+                draggedId = card.dataset.activityId;
+                event.dataTransfer.effectAllowed = 'move';
+            });
+
+            card.addEventListener('dragend', function () {
+                columns.forEach(column => column.style.borderColor = '#e2e8f0');
+            });
+        });
+
+        columns.forEach(column => {
+            column.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                column.style.borderColor = '#0f4c81';
+            });
+
+            column.addEventListener('dragleave', function () {
+                column.style.borderColor = '#e2e8f0';
+            });
+
+            column.addEventListener('drop', function (event) {
+                event.preventDefault();
+                const status = column.dataset.column;
+                if (!draggedId) return;
+                const formData = new FormData();
+                formData.append('status', status);
+                fetch(`/actividades-prioritarias/${draggedId}/estado/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

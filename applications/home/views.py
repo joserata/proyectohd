@@ -1,12 +1,16 @@
+import ast
+from datetime import date
+
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
-from django.shortcuts import redirect, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from .models import DeveloperPerformance, FollowUp, Observation, Project, Status, Task
+from .models import DeveloperPerformance, FollowUp, Observation, PriorityActivity, Project, Status, Task
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -313,3 +317,145 @@ def create_observation(request):
     users = get_user_model().objects.all().order_by('username')
     tasks = Task.objects.select_related('project').order_by('-created_at')
     return render(request, 'home/observation_form.html', {'users': users, 'tasks': tasks})
+
+
+@login_required(login_url='login')
+def priority_activities(request):
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    selected_priority = request.GET.get('priority', '')
+    selected_status = request.GET.get('status', '')
+
+    activities_qs = PriorityActivity.objects.select_related('assigned_to').all()
+    if selected_priority:
+        activities_qs = activities_qs.filter(priority=selected_priority)
+    if selected_status:
+        activities_qs = activities_qs.filter(status=selected_status)
+
+    activities = sorted(activities_qs, key=lambda item: (priority_order.get(item.priority, 99), item.due_date or date.max, item.created_at))
+
+    if request.method == 'POST':
+        activity_id = request.POST.get('activity_id')
+        if activity_id:
+            activity = get_object_or_404(PriorityActivity, pk=activity_id)
+        else:
+            activity = PriorityActivity()
+
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        priority = request.POST.get('priority', 'high')
+        status = request.POST.get('status', 'pending')
+        assigned_to_id = request.POST.get('assigned_to') or None
+        due_date = request.POST.get('due_date') or None
+        if title:
+            activity.title = title
+            activity.description = description
+            activity.priority = priority
+            activity.status = status
+            activity.assigned_to_id = assigned_to_id
+            activity.due_date = due_date
+            activity.save()
+            return redirect('priority_activities')
+
+    users = get_user_model().objects.all().order_by('username')
+    status_summary = [
+        {'label': 'Pendientes', 'value': activities_qs.filter(status='pending').count(), 'code': 'pending'},
+        {'label': 'En progreso', 'value': activities_qs.filter(status='in_progress').count(), 'code': 'in_progress'},
+        {'label': 'Completadas', 'value': activities_qs.filter(status='done').count(), 'code': 'done'},
+    ]
+    priority_summary = [
+        {'label': 'Críticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
+        {'label': 'Altas', 'value': activities_qs.filter(priority='high').count(), 'code': 'high'},
+        {'label': 'Medias', 'value': activities_qs.filter(priority='medium').count(), 'code': 'medium'},
+        {'label': 'Bajas', 'value': activities_qs.filter(priority='low').count(), 'code': 'low'},
+    ]
+    return render(request, 'home/priority_activities.html', {
+        'activities': activities,
+        'users': users,
+        'status_summary': status_summary,
+        'priority_summary': priority_summary,
+        'editing_activity': None,
+        'selected_priority': selected_priority,
+        'selected_status': selected_status,
+    })
+
+
+@login_required(login_url='login')
+def priority_activity_update(request, pk):
+    activity = get_object_or_404(PriorityActivity, pk=pk)
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    activities_qs = PriorityActivity.objects.select_related('assigned_to').all()
+    activities = sorted(activities_qs, key=lambda item: (priority_order.get(item.priority, 99), item.due_date or date.max, item.created_at))
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        priority = request.POST.get('priority', 'high')
+        status = request.POST.get('status', 'pending')
+        assigned_to_id = request.POST.get('assigned_to') or None
+        due_date = request.POST.get('due_date') or None
+        if title:
+            activity.title = title
+            activity.description = description
+            activity.priority = priority
+            activity.status = status
+            activity.assigned_to_id = assigned_to_id
+            activity.due_date = due_date
+            activity.save()
+            return redirect('priority_activities')
+
+    users = get_user_model().objects.all().order_by('username')
+    status_summary = [
+        {'label': 'Pendientes', 'value': activities_qs.filter(status='pending').count(), 'code': 'pending'},
+        {'label': 'En progreso', 'value': activities_qs.filter(status='in_progress').count(), 'code': 'in_progress'},
+        {'label': 'Completadas', 'value': activities_qs.filter(status='done').count(), 'code': 'done'},
+    ]
+    priority_summary = [
+        {'label': 'Críticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
+        {'label': 'Altas', 'value': activities_qs.filter(priority='high').count(), 'code': 'high'},
+        {'label': 'Medias', 'value': activities_qs.filter(priority='medium').count(), 'code': 'medium'},
+        {'label': 'Bajas', 'value': activities_qs.filter(priority='low').count(), 'code': 'low'},
+    ]
+    return render(request, 'home/priority_activities.html', {
+        'activities': activities,
+        'users': users,
+        'status_summary': status_summary,
+        'priority_summary': priority_summary,
+        'editing_activity': activity,
+        'selected_priority': '',
+        'selected_status': '',
+    })
+
+
+@login_required(login_url='login')
+def priority_activity_delete(request, pk):
+    activity = get_object_or_404(PriorityActivity, pk=pk)
+    if request.method == 'POST':
+        activity.delete()
+    return redirect('priority_activities')
+
+
+@login_required(login_url='login')
+def priority_activity_status_update(request, pk):
+    activity = get_object_or_404(PriorityActivity, pk=pk)
+    if request.method == 'POST':
+        new_status = (
+            request.POST.get('status')
+            or request.POST.get('new_status')
+            or request.POST.get('column', '')
+        ).strip()
+        if not new_status and request.body:
+            try:
+                payload = ast.literal_eval(request.body.decode())
+            except (ValueError, SyntaxError):
+                payload = None
+            if isinstance(payload, dict):
+                new_status = (
+                    payload.get('status')
+                    or payload.get('new_status')
+                    or payload.get('column', '')
+                ).strip()
+        valid_statuses = {code for code, _label in PriorityActivity.STATUS_CHOICES}
+        if new_status in valid_statuses:
+            activity.status = new_status
+            activity.save()
+    return JsonResponse({'status': activity.status})

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import FollowUp, Project, Status, Task
+from .models import FollowUp, PriorityActivity, Project, Status, Task
 
 
 class GestionSoftwareModelsTest(TestCase):
@@ -42,3 +42,35 @@ class GestionSoftwareModelsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Resumen dinámico por producción y rendimiento')
         self.assertContains(response, 'Perfil de desarrollador')
+
+    def test_priority_activity_update_view_renders(self):
+        activity = PriorityActivity.objects.create(title='Validar entorno', priority='critical', status='pending')
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('priority_activity_update', args=[activity.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Editar actividad')
+
+    def test_priority_activities_filter_and_kanban_render(self):
+        PriorityActivity.objects.create(title='Validar entorno', priority='critical', status='pending')
+        PriorityActivity.objects.create(title='Revisar seguridad', priority='high', status='done')
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('priority_activities'), {'priority': 'critical', 'status': 'pending'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Tablero kanban')
+        self.assertContains(response, 'Validar entorno')
+        self.assertNotContains(response, 'Revisar seguridad')
+
+    def test_priority_activity_status_update(self):
+        activity = PriorityActivity.objects.create(title='Actualizar entorno', priority='high', status='pending')
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse('priority_activity_status_update', args=[activity.pk]),
+            data={'status': 'in_progress'},
+            content_type='application/x-www-form-urlencoded',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        activity.refresh_from_db()
+        self.assertEqual(activity.status, 'in_progress')
