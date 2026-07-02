@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Manual de herramientas de calidad{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">Manual</p>
+        <h2 class="hero-title">Guía para ejecutar las herramientas</h2>
+        <p class="muted">Pasos concretos para correr Playwright, Locust, Bandit, Safety, Semgrep y pylint desde este proyecto.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+        <a class="btn btn-primary" href="/pruebastest/">Volver a pruebas</a>
+        <a class="btn btn-secondary" href="/">Volver al panel</a>
+    </div>
+</div>
+
+<div class="section-grid">
+    {% for section in manual_sections %}
+        <div class="card">
+            <div class="toolbar" style="margin-top:0;">
+                <div>
+                    <p class="eyebrow">{{ section.tag }}</p>
+                    <h3 style="margin:0;">{{ section.name }}</h3>
+                </div>
+                <span class="pill">Paso a paso</span>
+            </div>
+            <p class="muted">{{ section.goal }}</p>
+
+            <div class="detail-item" style="margin-bottom:12px;">
+                <span>Instalar</span>
+                <strong>
+                    <ul style="margin: 8px 0 0 18px;">
+                        {% for item in section.install %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </strong>
+            </div>
+
+            <div class="detail-item" style="margin-bottom:12px;">
+                <span>Ejecutar</span>
+                <strong>
+                    <ul style="margin: 8px 0 0 18px;">
+                        {% for item in section.run %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </strong>
+            </div>
+
+            <div class="detail-item" style="margin-bottom:12px;">
+                <span>Interpretar resultado</span>
+                <strong>
+                    <ul style="margin: 8px 0 0 18px;">
+                        {% for item in section.interpret %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </strong>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <p class="eyebrow">Resumen rápido</p>
+    <h3 style="margin-top:0;">Comandos principales</h3>
+    <div class="section-grid">
+        <div class="detail-item"><span>Playwright</span><strong><code>python tests/e2e/playwright_smoke.py</code></strong></div>
+        <div class="detail-item"><span>Locust</span><strong><code>locust -f locustfile.py</code></strong></div>
+        <div class="detail-item"><span>Bandit</span><strong><code>bandit -r applications -c tools/bandit.yml</code></strong></div>
+        <div class="detail-item"><span>Safety</span><strong><code>safety scan --target .</code></strong></div>
+        <div class="detail-item"><span>Semgrep</span><strong><code>semgrep scan --config tools/semgrep.yml applications</code></strong></div>
+        <div class="detail-item"><span>pylint</span><strong><code>pylint --rcfile=tools/pylintrc --recursive=y applications</code></strong></div>
+    </div>
+</div>
+{% endblock %}

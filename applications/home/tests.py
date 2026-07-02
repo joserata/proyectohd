@@ -1,8 +1,26 @@
+﻿from unittest import SkipTest, skipUnless
+
 from django.contrib.auth import get_user_model
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import TestCase
 from django.urls import reverse
 
 from .models import FollowUp, PriorityActivity, Project, Status, Task
+
+try:
+    from selenium import webdriver
+    from selenium.common.exceptions import WebDriverException
+    from selenium.webdriver.chrome.options import Options as ChromeOptions
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.firefox.options import Options as FirefoxOptions
+    from selenium.webdriver.support.ui import Select
+except ImportError:  # pragma: no cover - optional dependency
+    webdriver = None
+    WebDriverException = Exception
+    By = None
+    Select = None
+    ChromeOptions = None
+    FirefoxOptions = None
 
 
 class GestionSoftwareModelsTest(TestCase):
@@ -74,3 +92,115 @@ class GestionSoftwareModelsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         activity.refresh_from_db()
         self.assertEqual(activity.status, 'in_progress')
+
+    def test_quality_tools_view_renders_for_developer(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['user_profile'] = 'developer'
+        session.save()
+
+        response = self.client.get(reverse('quality_tools'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Playwright')
+        self.assertContains(response, 'Locust')
+        self.assertContains(response, 'Bandit')
+        self.assertContains(response, 'Safety')
+        self.assertContains(response, 'Semgrep')
+        self.assertContains(response, 'pylint')
+
+    def test_quality_tools_manual_renders_for_developer(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['user_profile'] = 'developer'
+        session.save()
+
+        response = self.client.get(reverse('quality_tools_manual'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Guía para ejecutar las herramientas')
+        self.assertContains(response, 'Instalar')
+        self.assertContains(response, 'Ejecutar')
+        self.assertContains(response, 'Interpretar resultado')
+        self.assertContains(response, 'Playwright')
+        self.assertContains(response, 'Semgrep')
+        self.assertContains(response, 'pylint')
+
+    def test_quality_tools_manual_renders_for_tester(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['user_profile'] = 'tester'
+        session.save()
+
+        response = self.client.get(reverse('quality_tools_manual'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Guía para ejecutar las herramientas')
+        self.assertContains(response, 'Playwright')
+        self.assertContains(response, 'Semgrep')
+        self.assertContains(response, 'pylint')
+
+
+@skipUnless(webdriver is not None, 'Selenium no está instalado')
+class LoginSeleniumTest(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = cls._build_driver()
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, 'driver', None):
+            cls.driver.quit()
+        super().tearDownClass()
+
+    @classmethod
+    def _build_driver(cls):
+        errors = []
+
+        if ChromeOptions is not None:
+            try:
+                options = ChromeOptions()
+                options.add_argument('--headless=new')
+                options.add_argument('--window-size=1440,1200')
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
+                return webdriver.Chrome(options=options)
+            except WebDriverException as exc:
+                errors.append(f'Chrome: {exc}')
+
+        if FirefoxOptions is not None:
+            try:
+                options = FirefoxOptions()
+                options.add_argument('-headless')
+                return webdriver.Firefox(options=options)
+            except WebDriverException as exc:
+                errors.append(f'Firefox: {exc}')
+
+        raise SkipTest('No se pudo iniciar un navegador para Selenium: ' + ' | '.join(errors))
+
+    def setUp(self):
+        self.User = get_user_model()
+        self.dev_user = self.User.objects.create_user(username='dev.selenium', password='12345678')
+        self.test_user = self.User.objects.create_user(username='qa.selenium', password='12345678')
+
+    def test_login_selector_and_role_routing(self):
+        self.driver.get(f'{self.live_server_url}{reverse("login")}')
+        profile_select = Select(self.driver.find_element(By.NAME, 'profile'))
+        options = [option.text for option in profile_select.options]
+        self.assertIn('Desarrollo', options)
+        self.assertIn('Tester', options)
+
+        self.driver.find_element(By.NAME, 'username').send_keys(self.dev_user.username)
+        self.driver.find_element(By.NAME, 'password').send_keys('12345678')
+        profile_select.select_by_visible_text('Desarrollo')
+        self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        self.assertIn(reverse('dashboard'), self.driver.current_url)
+
+        self.driver.get(f'{self.live_server_url}{reverse("login")}')
+        self.driver.find_element(By.NAME, 'username').send_keys(self.test_user.username)
+        self.driver.find_element(By.NAME, 'password').send_keys('12345678')
+        Select(self.driver.find_element(By.NAME, 'profile')).select_by_visible_text('Tester')
+        self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        self.assertIn(reverse('pruebastest_index'), self.driver.current_url)
+

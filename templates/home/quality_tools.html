@@ -1,0 +1,77 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Herramientas de calidad{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">Calidad</p>
+        <h2 class="hero-title">Automatización, carga, seguridad y análisis</h2>
+        <p class="muted">Panel de acceso rápido para Playwright, Locust, Bandit, Safety, Semgrep y pylint con los archivos y comandos base del proyecto.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+        <a class="btn btn-primary" href="/">Volver al panel</a>
+    </div>
+</div>
+
+<div class="section-grid">
+    {% for tool in tools %}
+        <div class="card">
+            <div class="toolbar" style="margin-top:0;">
+                <div>
+                    <p class="eyebrow">{{ tool.tag }}</p>
+                    <h3 style="margin:0;">{{ tool.name }}</h3>
+                </div>
+                <span class="pill">Listo para usar</span>
+            </div>
+            <p class="muted">{{ tool.description }}</p>
+            <div class="detail-item" style="margin-bottom:12px;">
+                <span>Archivo</span>
+                <strong>{{ tool.file }}</strong>
+            </div>
+            <div class="detail-item" style="margin-bottom:12px;">
+                <span>Comando</span>
+                <strong><code>{{ tool.command }}</code></strong>
+            </div>
+            <ul>
+                {% for note in tool.notes %}
+                    <li>{{ note }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="section-grid">
+    <div class="card">
+        <p class="eyebrow">Preparación</p>
+        <h3 style="margin-top:0;">Pasos sugeridos</h3>
+        <ol>
+            {% for step in setup_steps %}
+                <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="card">
+        <p class="eyebrow">Acciones</p>
+        <h3 style="margin-top:0;">Configuración y comandos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in quick_refs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

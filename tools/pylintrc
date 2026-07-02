@@ -1,0 +1,9 @@
+[MASTER]
+ignore=venv,.venv,__pycache__,migrations,static,media
+jobs=0
+
+[MESSAGES CONTROL]
+disable=C0114,C0115,C0116
+
+[FORMAT]
+max-line-length=100

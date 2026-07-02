@@ -1,3 +1,10 @@
-Django==4.2.16
+﻿Django==4.2.16
 PyMySQL==1.1.1
 python-dotenv==1.0.1
+selenium>=4.20.0
+playwright>=1.47.0
+locust>=2.31.0
+bandit>=1.7.9
+safety>=3.2.0
+semgrep>=1.80.0
+pylint>=3.2.0

@@ -1,0 +1,8 @@
+rules:
+  - id: django-debug-mode
+    message: DEBUG should stay disabled outside development.
+    languages:
+      - python
+    severity: WARNING
+    patterns:
+      - pattern: DEBUG = True

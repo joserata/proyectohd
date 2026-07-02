@@ -1,0 +1,10 @@
+﻿exclude_dirs:
+  - .venv
+  - venv
+  - __pycache__
+  - migrations
+  - static
+  - media
+skips:
+  - B101
+  - B104

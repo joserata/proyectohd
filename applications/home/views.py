@@ -1,4 +1,4 @@
-import ast
+﻿import ast
 from datetime import date
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -8,6 +8,8 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+
+from .role_utils import ROLE_CHOICES, get_profile, profile_home
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .models import DeveloperPerformance, FollowUp, Observation, PriorityActivity, Project, Status, Task
@@ -105,20 +107,34 @@ class FollowUpDeleteView(LoginRequiredMixin, DeleteView):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect(profile_home(get_profile(request)))
+
+    error_message = ''
+    selected_profile = request.POST.get('profile', 'developer') if request.method == 'POST' else 'developer'
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('dashboard')
+        profile = request.POST.get('profile', '').strip()
+        if profile not in dict(ROLE_CHOICES):
+            error_message = 'Selecciona un perfil válido.'
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                request.session['user_profile'] = profile
+                return redirect(profile_home(profile))
+            error_message = 'Usuario o contraseña incorrectos.'
 
-    return render(request, 'home/login.html')
+    return render(request, 'home/login.html', {
+        'roles': ROLE_CHOICES,
+        'selected_profile': selected_profile,
+        'error_message': error_message,
+    })
 
 
 def logout_view(request):
+    request.session.pop('user_profile', None)
     logout(request)
     return redirect('login')
 
@@ -134,10 +150,10 @@ def dashboard(request):
     observations = Observation.objects.select_related('developer', 'task').order_by('-created_at')[:6]
     users = get_user_model().objects.annotate(task_count=Count('tasks')).order_by('username')
     workflow_stages = [
-        {'name': 'Análisis', 'description': 'Requerimientos, diseño y definición', 'count': Task.objects.filter(Q(status__name__icontains='anal') | Q(status__name__icontains='diseñ') | Q(status__name__icontains='disen') | Q(status__name__icontains='requis') | Q(status__name__icontains='backlog') | Q(status__name__icontains='pendiente') | Q(status__name__icontains='por hacer')).count()},
-        {'name': 'Implementación', 'description': 'Construcción y desarrollo del servicio', 'count': Task.objects.filter(Q(status__name__icontains='desarrollo') | Q(status__name__icontains='implement') | Q(status__name__icontains='progreso') | Q(status__name__icontains='en curso') | Q(status__name__icontains='avance')).count()},
-        {'name': 'QA', 'description': 'Pruebas funcionales y revisión', 'count': Task.objects.filter(Q(status__name__icontains='prueba') | Q(status__name__icontains='testing') | Q(status__name__icontains='qa') | Q(status__name__icontains='revisión') | Q(status__name__icontains='revision')).count()},
-        {'name': 'Producción', 'description': 'Aprobación y publicación final', 'count': Task.objects.filter(Q(status__name__icontains='producc') | Q(status__name__icontains='public') | Q(status__name__icontains='deploy') | Q(status__name__icontains='release') | Q(status__name__icontains='aprob') | Q(status__name__icontains='valid') | Q(status__name__icontains='listo') | Q(status__name__icontains='cerrad') | Q(status__name__icontains='done')).count()},
+        {'name': 'AnÃ¡lisis', 'description': 'Requerimientos, diseÃ±o y definiciÃ³n', 'count': Task.objects.filter(Q(status__name__icontains='anal') | Q(status__name__icontains='diseÃ±') | Q(status__name__icontains='disen') | Q(status__name__icontains='requis') | Q(status__name__icontains='backlog') | Q(status__name__icontains='pendiente') | Q(status__name__icontains='por hacer')).count()},
+        {'name': 'ImplementaciÃ³n', 'description': 'ConstrucciÃ³n y desarrollo del servicio', 'count': Task.objects.filter(Q(status__name__icontains='desarrollo') | Q(status__name__icontains='implement') | Q(status__name__icontains='progreso') | Q(status__name__icontains='en curso') | Q(status__name__icontains='avance')).count()},
+        {'name': 'QA', 'description': 'Pruebas funcionales y revisiÃ³n', 'count': Task.objects.filter(Q(status__name__icontains='prueba') | Q(status__name__icontains='testing') | Q(status__name__icontains='qa') | Q(status__name__icontains='revisiÃ³n') | Q(status__name__icontains='revision')).count()},
+        {'name': 'ProducciÃ³n', 'description': 'AprobaciÃ³n y publicaciÃ³n final', 'count': Task.objects.filter(Q(status__name__icontains='producc') | Q(status__name__icontains='public') | Q(status__name__icontains='deploy') | Q(status__name__icontains='release') | Q(status__name__icontains='aprob') | Q(status__name__icontains='valid') | Q(status__name__icontains='listo') | Q(status__name__icontains='cerrad') | Q(status__name__icontains='done')).count()},
     ]
     user_summary = []
     for user in users:
@@ -363,7 +379,7 @@ def priority_activities(request):
         {'label': 'Completadas', 'value': activities_qs.filter(status='done').count(), 'code': 'done'},
     ]
     priority_summary = [
-        {'label': 'Críticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
+        {'label': 'CrÃ­ticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
         {'label': 'Altas', 'value': activities_qs.filter(priority='high').count(), 'code': 'high'},
         {'label': 'Medias', 'value': activities_qs.filter(priority='medium').count(), 'code': 'medium'},
         {'label': 'Bajas', 'value': activities_qs.filter(priority='low').count(), 'code': 'low'},
@@ -410,7 +426,7 @@ def priority_activity_update(request, pk):
         {'label': 'Completadas', 'value': activities_qs.filter(status='done').count(), 'code': 'done'},
     ]
     priority_summary = [
-        {'label': 'Críticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
+        {'label': 'CrÃ­ticas', 'value': activities_qs.filter(priority='critical').count(), 'code': 'critical'},
         {'label': 'Altas', 'value': activities_qs.filter(priority='high').count(), 'code': 'high'},
         {'label': 'Medias', 'value': activities_qs.filter(priority='medium').count(), 'code': 'medium'},
         {'label': 'Bajas', 'value': activities_qs.filter(priority='low').count(), 'code': 'low'},
@@ -459,3 +475,217 @@ def priority_activity_status_update(request, pk):
             activity.status = new_status
             activity.save()
     return JsonResponse({'status': activity.status})
+
+
+
+@login_required(login_url='login')
+def quality_tools(request):
+    tools = [
+        {
+            'name': 'Playwright',
+            'tag': 'E2E',
+            'description': 'Pruebas end-to-end para validar login, rutas y navegación real en navegador.',
+            'file': 'tests/e2e/playwright_smoke.py',
+            'command': 'python tests/e2e/playwright_smoke.py',
+            'notes': [
+                'Usa el selector de perfil del login',
+                'Puede correr contra el servidor local',
+                'Requiere navegador y Playwright instalados',
+            ],
+        },
+        {
+            'name': 'Locust',
+            'tag': 'Load',
+            'description': 'Simulación de usuarios concurrentes para medir carga en login, dashboard y rutas de QA.',
+            'file': 'locustfile.py',
+            'command': 'locust -f locustfile.py',
+            'notes': [
+                'Escenarios separados por perfil',
+                'Permite ajustar usuarios y ramp-up',
+                'Útil para detectar cuellos de botella',
+            ],
+        },
+        {
+            'name': 'Bandit',
+            'tag': 'Security',
+            'description': 'Escaneo estático de seguridad para código Python, con exclusiones básicas del proyecto.',
+            'file': 'tools/bandit.yml',
+            'command': 'bandit -r applications -c tools/bandit.yml',
+            'notes': [
+                'Revisa patrones inseguros en Python',
+                'Se puede ejecutar en CI',
+                'Ayuda a detectar riesgos temprano',
+            ],
+        },
+        {
+            'name': 'Safety',
+            'tag': 'SCA',
+            'description': 'Análisis de dependencias para detectar vulnerabilidades conocidas en requirements y paquetes instalados.',
+            'file': 'requirements.txt',
+            'command': 'safety scan --target .',
+            'notes': [
+                'Revisa dependencias vulnerables',
+                'Útil antes de liberar a producción',
+                'Complementa el análisis de código',
+            ],
+        },
+        {
+            'name': 'Semgrep',
+            'tag': 'SAST',
+            'description': 'Reglas personalizadas y análisis semántico para encontrar patrones inseguros o de mala práctica.',
+            'file': 'tools/semgrep.yml',
+            'command': 'semgrep scan --config tools/semgrep.yml applications',
+            'notes': [
+                'Permite reglas propias del proyecto',
+                'Puede ejecutarse en CI/CD',
+                'Es fácil ampliar con nuevas reglas',
+            ],
+        },
+        {
+            'name': 'pylint',
+            'tag': 'Lint',
+            'description': 'Linting de estilo y calidad para Python, con configuración local y salida detallada.',
+            'file': 'tools/pylintrc',
+            'command': 'pylint --rcfile=tools/pylintrc --recursive=y applications',
+            'notes': [
+                'Detecta errores, smells y convenciones',
+                'Sirve para revisar módulos por módulo',
+                'Aporta una capa extra de calidad',
+            ],
+        },
+    ]
+    setup_steps = [
+        'Instala las dependencias del proyecto con pip.',
+        'Instala los navegadores de Playwright con `playwright install`.',
+        'Si usas Semgrep o pylint, revisa sus archivos de configuración en `tools/`.',
+        'Levanta Django en local con `python manage.py runserver`.',
+        'Ejecuta Playwright, Locust o Bandit según el caso.',
+        'Lanza Safety, Semgrep y pylint para completar el flujo de análisis.',
+    ]
+    quick_refs = [
+        {'name': 'PLAYWRIGHT_BASE_URL', 'value': 'http://127.0.0.1:8000'},
+        {'name': 'PLAYWRIGHT_DEV_USER', 'value': 'Usuario del perfil desarrollo'},
+        {'name': 'PLAYWRIGHT_TEST_USER', 'value': 'Usuario del perfil tester'},
+        {'name': 'LOCUST_HOST', 'value': 'http://127.0.0.1:8000'},
+        {'name': 'Safety', 'value': 'safety scan --target .'},
+        {'name': 'Semgrep', 'value': 'semgrep scan --config tools/semgrep.yml applications'},
+        {'name': 'pylint', 'value': 'pylint --rcfile=tools/pylintrc --recursive=y applications'},
+    ]
+    return render(request, 'home/quality_tools.html', {
+        'tools': tools,
+        'setup_steps': setup_steps,
+        'quick_refs': quick_refs,
+    })
+
+
+@login_required(login_url='login')
+def quality_tools_manual(request):
+    manual_sections = [
+        {
+            'name': 'Playwright',
+            'tag': 'E2E',
+            'goal': 'Validar el login y la navegación real en navegador.',
+            'install': [
+                'Instala las dependencias del proyecto.',
+                'Ejecuta `playwright install` una sola vez.',
+            ],
+            'run': [
+                'Levanta Django con `python manage.py runserver`.',
+                'Configura las variables `PLAYWRIGHT_*`.',
+                'Ejecuta `python tests/e2e/playwright_smoke.py`.',
+            ],
+            'interpret': [
+                'Si el flujo termina sin errores, el login y el ruteo básico están correctos.',
+                'Si el navegador falla, revisa credenciales, selectores o la URL base.',
+            ],
+        },
+        {
+            'name': 'Locust',
+            'tag': 'Load',
+            'goal': 'Simular usuarios concurrentes y medir rendimiento.',
+            'install': [
+                'Levanta Django en local.',
+                'Verifica que Locust esté instalado en el entorno.',
+            ],
+            'run': [
+                'Define `LOCUST_HOST` y credenciales de prueba.',
+                'Ejecuta `locust -f locustfile.py`.',
+                'Abre la interfaz web de Locust y configura usuarios.',
+            ],
+            'interpret': [
+                'Busca picos de latencia, fallos de login y rutas lentas.',
+                'Si hay errores 401 o 403, confirma el perfil y las credenciales.',
+            ],
+        },
+        {
+            'name': 'Bandit',
+            'tag': 'Security',
+            'goal': 'Revisar patrones inseguros en el código Python.',
+            'install': [
+                'Instala las dependencias del entorno.',
+                'Confirma que `tools/bandit.yml` existe.',
+            ],
+            'run': [
+                'Ejecuta `bandit -r applications -c tools/bandit.yml`.',
+                'Corrige los hallazgos y repite el análisis.',
+            ],
+            'interpret': [
+                'Prioriza los hallazgos con mayor severidad.',
+                'Usa la salida para ubicar riesgos de seguridad en el código.',
+            ],
+        },
+        {
+            'name': 'Safety',
+            'tag': 'SCA',
+            'goal': 'Detectar vulnerabilidades conocidas en dependencias.',
+            'install': [
+                'Asegúrate de tener el entorno virtual activo.',
+                'Comprueba que `safety` esté instalado.',
+            ],
+            'run': [
+                'Ejecuta `safety scan --target .`.',
+                'Actualiza dependencias marcadas y vuelve a validar.',
+            ],
+            'interpret': [
+                'Un reporte limpio significa que no hay vulnerabilidades conocidas detectadas en las dependencias escaneadas.',
+                'Si aparece una vulnerabilidad, evalúa impacto antes de actualizar.',
+            ],
+        },
+        {
+            'name': 'Semgrep',
+            'tag': 'SAST',
+            'goal': 'Aplicar reglas semánticas para encontrar patrones peligrosos.',
+            'install': [
+                'Confirma que existe `tools/semgrep.yml`.',
+                'Verifica que Semgrep esté instalado en el entorno.',
+            ],
+            'run': [
+                'Ejecuta `semgrep scan --config tools/semgrep.yml applications`.',
+                'Agrega reglas nuevas si quieres ampliar cobertura.',
+            ],
+            'interpret': [
+                'Cada hallazgo apunta a un patrón que conviene revisar manualmente.',
+                'Si una regla genera ruido, ajusta el YAML del proyecto.',
+            ],
+        },
+        {
+            'name': 'pylint',
+            'tag': 'Lint',
+            'goal': 'Evaluar estilo, consistencia y calidad del código Python.',
+            'install': [
+                'Revisa `tools/pylintrc` si necesitas ajustar reglas.',
+                'Asegúrate de que pylint esté instalado.',
+            ],
+            'run': [
+                'Ejecuta `pylint --rcfile=tools/pylintrc --recursive=y applications`.',
+                'Corrige warnings de estilo, diseño y posibles errores.',
+            ],
+            'interpret': [
+                'Usa el puntaje y los mensajes como guía de refactorización.',
+                'Si el reporte es muy ruidoso, ajusta reglas de forma gradual.',
+            ],
+        },
+    ]
+    return render(request, 'home/quality_tools_manual.html', {
+        'manual_sections': manual_sections,
+    })

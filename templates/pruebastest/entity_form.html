@@ -1,0 +1,54 @@
+﻿{% extends 'base.html' %}
+
+{% block extra_head %}
+    {% include 'pruebastest/theme.html' %}
+{% endblock %}
+
+{% block body_class %}pruebastest-page{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">Formulario</p>
+        <h2 class="hero-title">{{ title }}</h2>
+        <p class="muted">Completa los campos para guardar el registro.</p>
+    </div>
+    <div>
+        <a class="btn btn-secondary" href="{{ cancel_url }}">Cancelar</a>
+    </div>
+</div>
+
+<div class="card">
+    {% if form.non_field_errors %}
+        <div class="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            {% for field in form.visible_fields %}
+                <div class="form-field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <span class="helptext">{{ field.help_text }}</span>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="form-errors" style="margin-top:8px;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top:18px;">
+            <button class="btn btn-primary" type="submit">{% if is_update %}Actualizar{% else %}Guardar{% endif %}</button>
+            <a class="btn btn-secondary" href="{{ cancel_url }}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+

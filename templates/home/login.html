@@ -1,18 +1,284 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Iniciar sesión{% endblock %}
 
+{% block body_class %}login-page{% endblock %}
+
+{% block extra_head %}
+<style>
+    body.login-page {
+        background:
+            radial-gradient(circle at top left, rgba(15, 76, 129, 0.18), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(245, 166, 35, 0.16), transparent 22%),
+            linear-gradient(180deg, #f4f8fc 0%, #e9f0f7 100%);
+        min-height: 100vh;
+    }
+    body.login-page .topbar {
+        background: transparent;
+        color: var(--text);
+        padding: 18px 24px 0;
+        align-items: flex-start;
+    }
+    body.login-page .topbar h1,
+    body.login-page .topbar .muted {
+        color: var(--text);
+    }
+    body.login-page .nav {
+        display: none;
+    }
+    body.login-page .container {
+        max-width: 1180px;
+        margin-top: 10px;
+    }
+    body.login-page .login-shell {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        overflow: hidden;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.76);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(15, 76, 129, 0.14);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+        position: relative;
+    }
+    body.login-page .login-shell::before,
+    body.login-page .login-shell::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    body.login-page .login-shell::before {
+        width: 180px;
+        height: 180px;
+        right: -40px;
+        top: -50px;
+        background: rgba(29, 114, 160, 0.12);
+        filter: blur(8px);
+    }
+    body.login-page .login-shell::after {
+        width: 220px;
+        height: 220px;
+        left: -70px;
+        bottom: -70px;
+        background: rgba(245, 166, 35, 0.09);
+        filter: blur(10px);
+    }
+    body.login-page .login-brand {
+        padding: 42px;
+        background:
+            linear-gradient(135deg, rgba(15, 76, 129, 0.98), rgba(31, 111, 139, 0.92)),
+            linear-gradient(180deg, #0f4c81, #1f6f8b);
+        color: white;
+        position: relative;
+        min-height: 100%;
+        overflow: hidden;
+    }
+    body.login-page .login-brand::before {
+        content: '';
+        position: absolute;
+        inset: 18px 18px auto auto;
+        width: 210px;
+        height: 210px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.18);
+        opacity: 0.8;
+    }
+    body.login-page .login-brand::after {
+        content: '';
+        position: absolute;
+        inset: auto -20% -24% auto;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        filter: blur(10px);
+    }
+    body.login-page .login-brand h2 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.02;
+        max-width: 12ch;
+    }
+    body.login-page .login-brand p {
+        max-width: 42ch;
+    }
+    body.login-page .login-points {
+        list-style: none;
+        padding: 0;
+        margin: 28px 0 0;
+        display: grid;
+        gap: 12px;
+    }
+    body.login-page .login-points li {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.16);
+        backdrop-filter: blur(4px);
+    }
+    body.login-page .login-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+    }
+    body.login-page .login-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.16);
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    body.login-page .login-form {
+        padding: 42px;
+        background: rgba(255,255,255,0.94);
+    }
+    body.login-page .login-form h2 {
+        margin-top: 0;
+    }
+    body.login-page .login-form form {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+    }
+    body.login-page .login-form label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #4c6176;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    body.login-page .login-form input,
+    body.login-page .login-form select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-sizing: border-box;
+        background: white;
+        font-size: 1rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    body.login-page .login-form input:focus,
+    body.login-page .login-form select:focus {
+        outline: none;
+        border-color: rgba(15, 76, 129, 0.5);
+        box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.08);
+    }
+    body.login-page .login-form .btn {
+        width: 100%;
+        margin-top: 8px;
+        padding: 12px 16px;
+        border-radius: 12px;
+    }
+    body.login-page .login-form .form-errors {
+        margin-bottom: 0;
+    }
+    body.login-page .profile-hint {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+    body.login-page .profile-card {
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, #ffffff, #f8fbfd);
+    }
+    body.login-page .profile-card strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--primary);
+    }
+    body.login-page .profile-card span {
+        color: #6b7a90;
+        font-size: 0.88rem;
+    }
+    @media (max-width: 900px) {
+        body.login-page .login-shell {
+            grid-template-columns: 1fr;
+        }
+        body.login-page .login-brand,
+        body.login-page .login-form {
+            padding: 28px;
+        }
+        body.login-page .profile-hint {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card" style="max-width:480px;margin:40px auto;">
-    <h2>Iniciar sesión</h2>
-    <p class="muted">Accede al panel de seguimiento de desarrollo.</p>
-    <form method="post">
-        {% csrf_token %}
-        <label>Usuario</label>
-        <input type="text" name="username" required>
-        <label>Contraseña</label>
-        <input type="password" name="password" required>
-        <button class="btn btn-primary" type="submit">Entrar</button>
-    </form>
+<div class="login-shell">
+    <section class="login-brand">
+        <p class="eyebrow" style="color:rgba(255,255,255,0.8);">Acceso seguro</p>
+        <h2>Plataforma de desarrollo y pruebas</h2>
+        <p class="muted" style="color:rgba(255,255,255,0.84);">Ingresa con tu usuario y elige el perfil que corresponde a tu trabajo para acceder al espacio correcto.</p>
+
+        <ul class="login-points">
+            <li>Desarrollo: seguimiento, tareas, productividad y producción.</li>
+            <li>Tester: proyectos de prueba, casos, planes y ejecuciones.</li>
+            <li>Vista separada por rol para una navegación más limpia.</li>
+        </ul>
+
+        <div class="login-badges">
+            <span class="login-badge">Control unificado</span>
+            <span class="login-badge">Acceso por perfil</span>
+            <span class="login-badge">Experiencia limpia</span>
+        </div>
+    </section>
+
+    <section class="login-form">
+        <p class="eyebrow">Iniciar sesión</p>
+        <h2>Bienvenido de nuevo</h2>
+        <p class="muted">Selecciona tu perfil y entra al panel adecuado.</p>
+
+        {% if error_message %}
+            <div class="form-errors">{{ error_message }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <label>Usuario</label>
+                <input type="text" name="username" placeholder="Tu usuario" required>
+            </div>
+
+            <div>
+                <label>Contraseña</label>
+                <input type="password" name="password" placeholder="Tu contraseña" required>
+            </div>
+
+            <div>
+                <label>Perfil</label>
+                <select name="profile" required>
+                    {% for value, label in roles %}
+                        <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Entrar</button>
+        </form>
+
+        <div class="profile-hint">
+            <div class="profile-card">
+                <strong>Desarrollo</strong>
+                <span>Panel operativo con proyectos, tareas, seguimientos y métricas.</span>
+            </div>
+            <div class="profile-card">
+                <strong>Tester</strong>
+                <span>Área QA con pruebas, ejecuciones, planes y bugs.</span>
+            </div>
+        </div>
+    </section>
 </div>
 {% endblock %}

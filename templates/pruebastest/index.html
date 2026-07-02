@@ -1,0 +1,120 @@
+﻿{% extends 'base.html' %}
+
+{% block extra_head %}
+    {% include 'pruebastest/theme.html' %}
+{% endblock %}
+
+{% block body_class %}pruebastest-page{% endblock %}
+
+{% block title %}Módulo de pruebas{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">Testing suite</p>
+        <h2 class="hero-title">Centro de control de QA</h2>
+        <p class="muted">Explora proyectos, módulos, requerimientos, casos, planes, ejecuciones y bugs en una vista ejecutiva.</p>
+    </div>
+    <div>
+        <span class="pill">CRUD operativo</span>
+    </div>
+</div>
+
+<div class="stats">
+    {% for label, value in stats %}
+        <div class="stat-box">
+            <h3>{{ label }}</h3>
+            <h2>{{ value }}</h2>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="section-grid">
+    {% for kpi in dashboard_kpis %}
+        <div class="card">
+            <p class="eyebrow">KPI</p>
+            <h3 style="margin:0 0 6px;">{{ kpi.label }}</h3>
+            <h2 style="margin:0;font-size:2rem;color:var(--primary);">{{ kpi.value }}</h2>
+            <p class="muted" style="margin-bottom:0;">{{ kpi.hint }}</p>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="section-grid">
+    <div class="card accent-panel">
+        <p class="eyebrow" style="color:rgba(255,255,255,0.8);">Navegación</p>
+        <h3 style="margin-top:0;">Accesos rápidos</h3>
+        <p class="muted">Entra directamente a cada bloque funcional del laboratorio de pruebas.</p>
+        <div>
+            {% for section in sections %}
+                <a class="btn btn-secondary" href="{% url section.url %}">{{ section.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="eyebrow">Creación rápida</p>
+        <h3>Nuevo registro</h3>
+        <div>
+            <a class="btn btn-primary" href="{% url 'pruebastest_proyecto_create' %}">Proyecto</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_modulo_create' %}">Módulo</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_requerimiento_create' %}">Requerimiento</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_caso_create' %}">Caso</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_plan_create' %}">Plan</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_ejecucion_create' %}">Ejecución</a>
+            <a class="btn btn-primary" href="{% url 'pruebastest_bug_create' %}">Bug</a>
+        </div>
+    </div>
+</div>
+
+<div class="section-grid">
+    <div class="card">
+        <p class="eyebrow">Volumen</p>
+        <h3 style="margin-top:0;">Distribución por entidad</h3>
+        <div class="mini-bars">
+            {% for item in chart_items %}
+                <div class="mini-bar-row">
+                    <div class="mini-bar-head">
+                        <span>{{ item.label }}</span>
+                        <strong>{{ item.value }}</strong>
+                    </div>
+                    <div class="mini-bar-track">
+                        <div class="mini-bar-fill" style="width: {{ item.width }}%; background: {{ item.color }};"></div>
+                    </div>
+                    <small>{{ item.share }}% del total</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="eyebrow">Actividad reciente</p>
+        <h3 style="margin-top:0;">Últimos movimientos</h3>
+        <div class="recent-list">
+            {% for item in recent_items %}
+                <a class="recent-item" href="{{ item.url }}">
+                    <div class="recent-badge">{{ item.label }}</div>
+                    <div class="recent-body">
+                        <strong>{{ item.title }}</strong>
+                        <span>{{ item.meta }}</span>
+                    </div>
+                    <time>{{ item.time }}</time>
+                </a>
+            {% empty %}
+                <p class="muted">Todavía no hay actividad reciente.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <p class="eyebrow">Cobertura</p>
+    <h3>Capacidad del módulo</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><span>Estructura</span><strong>Proyectos y módulos jerárquicos</strong></div>
+        <div class="detail-item"><span>Definición</span><strong>Requerimientos trazables</strong></div>
+        <div class="detail-item"><span>Validación</span><strong>Casos, planes y ejecuciones</strong></div>
+        <div class="detail-item"><span>Incidencias</span><strong>Gestión de bugs y cierres</strong></div>
+    </div>
+</div>
+{% endblock %}

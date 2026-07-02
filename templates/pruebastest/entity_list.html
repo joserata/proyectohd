@@ -1,0 +1,94 @@
+﻿{% extends 'base.html' %}
+
+{% block extra_head %}
+    {% include 'pruebastest/theme.html' %}
+{% endblock %}
+
+{% block body_class %}pruebastest-page{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">Listado</p>
+        <h2 class="hero-title">{{ title }}</h2>
+        <p class="muted">Consulta, filtra y administra los registros del módulo.</p>
+    </div>
+    <div class="toolbar-group">
+        {% if back_url %}
+            <a class="btn btn-secondary" href="{{ back_url }}">Volver</a>
+        {% endif %}
+        {% if create_url %}
+            <a class="btn btn-primary" href="{{ create_url }}">Nuevo registro</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if filter_fields %}
+    <div class="card filter-panel">
+        <div class="toolbar">
+            <div>
+                <p class="eyebrow">Filtros</p>
+                <h3 style="margin:0;">Refina la búsqueda</h3>
+            </div>
+            <span class="pill">{{ headers|length }} columnas</span>
+        </div>
+        <form method="get" class="filter-grid">
+            {% for field in filter_fields %}
+                <div>
+                    <label>{{ field.label }}</label>
+                    {% if field.type == 'select' %}
+                        <select name="{{ field.name }}">
+                            {% for option in field.options %}
+                                <option value="{{ option.value }}" {% if option.value|stringformat:'s' == field.value|stringformat:'s' %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="text" name="{{ field.name }}" value="{{ field.value }}" placeholder="{{ field.placeholder }}">
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="toolbar-group">
+                <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+                <a class="btn btn-secondary" href="{{ request.path }}">Limpiar</a>
+            </div>
+        </form>
+    </div>
+{% endif %}
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                        <th>{{ header }}</th>
+                    {% endfor %}
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row.values %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                        <td>
+                            <a class="btn btn-secondary" href="{{ row.actions.detail_url }}">Ver</a>
+                            <a class="btn btn-primary" href="{{ row.actions.edit_url }}">Editar</a>
+                            <a class="btn btn-danger" href="{{ row.actions.delete_url }}">Eliminar</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="{{ headers|length|add:'1' }}">Sin registros</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+
