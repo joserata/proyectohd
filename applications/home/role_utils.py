@@ -10,11 +10,13 @@ ROLE_HOME = {
 ROLE_LABELS = {
     'developer': 'Desarrollo',
     'tester': 'Tester',
+    'security': 'security',
 }
 
 ROLE_CHOICES = (
     ('developer', 'Desarrollo'),
     ('tester', 'Tester'),
+    ('security', 'Security'),
 )
 
 
@@ -26,6 +28,7 @@ def get_profile(request):
     if path.startswith('/pruebastest/'):
         return 'tester'
     return 'developer'
+    return 'security'
 
 
 def profile_home(profile):

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'applications.home',
     'applications.pruebastest',
+    'applications.security',
 ]
 
 MIDDLEWARE = [

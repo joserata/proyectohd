@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+    {% include 'pruebastest/theme.html' %}
+{% endblock %}
+
+{% block body_class %}security-page{% endblock %}
+{% block title %}Centro DevSecOps{% endblock %}
+
+{% block content %}
+<div class="card page-hero">
+    <div>
+        <p class="eyebrow">DevSecOps Center</p>
+        <h2 class="hero-title">Centro de Seguridad y Calidad</h2>
+        <p class="muted">
+            Ejecuta Bandit, Semgrep, Safety, Pylint, Playwright y Locust
+            desde una única interfaz.
+        </p>
+    </div>
+    <div>
+        <span class="pill">Security Dashboard</span>
+    </div>
+</div>
+
+<div class="card">
+    <p class="eyebrow">Configuración</p>
+    <h3>URL del sistema</h3>
+
+    <form id="securityForm">
+        {% csrf_token %}
+        <input id="target_url"
+               name="target_url"
+               class="form-control"
+               type="url"
+               placeholder="https://localhost:8000"
+               style="width:100%;padding:12px;margin-bottom:15px;">
+
+        <button type="button"
+                class="btn btn-primary"
+                onclick="runAll()">
+            Ejecutar Todo
+        </button>
+    </form>
+</div>
+
+<div class="section-grid">
+
+<div class="section-grid">
+
+{% for tool in tools %}
+
+<div class="card">
+
+    <p class="eyebrow">
+        Herramienta
+    </p>
+
+    <h3>{{ tool|title }}</h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <span>Estado</span>
+            <strong id="{{ tool }}_status">
+                Pendiente
+            </strong>
+        </div>
+
+        <div class="detail-item">
+            <span>Duración</span>
+            <strong id="{{ tool }}_duration">
+                --
+            </strong>
+        </div>
+
+        <div class="detail-item">
+            <span>Hallazgos</span>
+            <strong id="{{ tool }}_findings">
+                --
+            </strong>
+        </div>
+
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:10px;">
+
+        <button
+            class="btn btn-primary"
+            onclick="runTool('{{ tool }}')">
+
+            Ejecutar
+
+        </button>
+
+        <button
+            class="btn btn-secondary"
+            onclick="openReport('{{ tool }}')">
+
+            Ver Reporte
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+<div class="card">
+<h3>Historial</h3>
+
+<table class="table">
+<thead>
+<tr>
+<th>Herramienta</th>
+<th>Estado</th>
+<th>Duración</th>
+<th>Fecha</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for scan in scans %}
+
+<tr>
+<td>{{ scan.get_tool_display }}</td>
+<td>{{ scan.status }}</td>
+<td>{{ scan.duration }} s</td>
+<td>{{ scan.started_at }}</td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="4">
+No existen ejecuciones.
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+</div>
+<div id="reportModal"
+     style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.75);
+        z-index:9999;
+">
+
+<div
+style="
+background:white;
+width:95%;
+height:95%;
+margin:20px auto;
+padding:25px;
+border-radius:15px;
+display:flex;
+flex-direction:column;
+">
+
+<div style="display:flex;justify-content:space-between;">
+
+<h2 id="modalTitle">
+
+Reporte
+
+</h2>
+
+<button
+class="btn btn-danger"
+onclick="closeReport()">
+
+Cerrar
+
+</button>
+
+</div>
+
+<hr>
+
+<h4>Recomendaciones</h4>
+
+<div id="modalRecommendation"
+style="
+background:#eef6ff;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+">
+
+Sin información.
+
+</div>
+
+<h4>Salida completa</h4>
+
+<pre id="modalOutput"
+style="
+background:#111;
+color:#0f0;
+padding:20px;
+overflow:auto;
+flex:1;
+border-radius:12px;
+">
+
+Esperando...
+
+</pre>
+
+</div>
+
+</div>
+<script>
+let reports = {};
+</script>
+
+<script>
+
+function runTool(tool){
+
+    let url=document.getElementById("target_url").value;
+
+    fetch("/security/run/"+tool+"/",{
+
+        method:"POST",
+
+        headers:{
+            "X-CSRFToken":document.querySelector("[name=csrfmiddlewaretoken]").value,
+            "Content-Type":"application/x-www-form-urlencoded"
+        },
+
+        body:new URLSearchParams({
+            target_url:url
+        })
+
+    })
+
+    .then(r=>r.json())
+
+    .then(data=>{
+
+        if(!data.success){
+
+            alert(data.message);
+
+            return;
+
+        }
+
+        reports[tool]=data;
+
+        document.getElementById(tool+"_status").innerHTML=data.status;
+
+        document.getElementById(tool+"_duration").innerHTML=data.duration+" s";
+
+        document.getElementById(tool+"_findings").innerHTML=data.findings;
+
+    })
+
+    .catch(err=>{
+
+        console.error(err);
+
+        alert("Error ejecutando "+tool);
+
+    });
+
+}
+
+function runAll(){
+
+    let tools=[
+        "bandit",
+        "semgrep",
+        "safety",
+        "pylint",
+        "playwright",
+        "locust"
+    ];
+
+    tools.forEach(t=>runTool(t));
+
+}
+function openReport(tool){
+
+    if(!(tool in reports)){
+
+        alert("Primero ejecute la herramienta.");
+
+        return;
+
+    }
+
+    document.getElementById("reportModal").style.display="block";
+
+    document.getElementById("modalTitle").innerHTML=tool.toUpperCase();
+
+    document.getElementById("modalRecommendation").innerHTML=
+
+        reports[tool].recommendation;
+
+    document.getElementById("modalOutput").textContent=
+
+        reports[tool].output;
+
+}
+
+function closeReport(){
+
+    document.getElementById("reportModal").style.display="none";
+
+}
+</script>
+
+{% endblock %}
