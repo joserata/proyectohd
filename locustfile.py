@@ -16,7 +16,7 @@ class BaseLoginFlow(SequentialTaskSet):
     def _login(self):
         response = self.client.get('/login/')
         csrf = response.cookies.get('csrftoken')
-        headers = {'X-CSRFToken': csrf.value if csrf else ''}
+        headers = {'X-CSRFToken': csrf if csrf else ''}
         self.client.post('/login/', data={
             'username': self.username,
             'password': self.password,
