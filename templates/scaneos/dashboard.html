@@ -1,0 +1,1012 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Centro Inteligente de Escaneo
+{% endblock %}
+
+
+{% block extra_css %}
+
+<link
+rel="stylesheet"
+href="{% static 'scaneos/css/dashboard.css' %}">
+
+<link
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+rel="stylesheet">
+
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+rel="stylesheet">
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+<div class="row mb-4">
+
+<div class="col-lg-8">
+
+<h2 class="page-title">
+
+<i class="fa-solid fa-shield-halved"></i>
+
+Centro Inteligente de Escaneo
+
+</h2>
+
+<p class="text-muted">
+
+Escaneo automático de aplicaciones Web utilizando múltiples motores de análisis.
+
+</p>
+
+</div>
+
+<div class="col-lg-4 text-end">
+
+<button
+id="btnRefresh"
+class="btn btn-outline-primary">
+
+<i class="fa-solid fa-rotate"></i>
+
+Actualizar
+
+</button>
+
+<button
+id="btnHistory"
+class="btn btn-outline-dark">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+Historial
+
+</button>
+
+</div>
+
+</div>
+
+<div class="row g-4">
+
+<div class="col-lg-3">
+
+<div class="dashboard-card">
+
+<div class="icon success">
+
+<i class="fa-solid fa-globe"></i>
+
+</div>
+
+<div>
+
+<h3 id="totalTargets">
+
+0
+
+</h3>
+
+<p>Objetivos</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="col-lg-3">
+
+<div class="dashboard-card">
+
+<div class="icon danger">
+
+<i class="fa-solid fa-bug"></i>
+
+</div>
+
+<div>
+
+<h3 id="totalVulnerabilities">
+
+0
+
+</h3>
+
+<p>Vulnerabilidades</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="col-lg-3">
+
+<div class="dashboard-card">
+
+<div class="icon warning">
+
+<i class="fa-solid fa-triangle-exclamation"></i>
+
+</div>
+
+<div>
+
+<h3 id="criticalAlerts">
+
+0
+
+</h3>
+
+<p>Alertas críticas</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="col-lg-3">
+
+<div class="dashboard-card">
+
+<div class="icon info">
+
+<i class="fa-solid fa-gauge-high"></i>
+
+</div>
+
+<div>
+
+<h3 id="securityScore">
+
+100
+
+</h3>
+
+<p>Security Score</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- CONFIGURACIÓN DEL ESCANEO -->
+<!-- ========================================================= -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            <i class="fa-solid fa-crosshairs"></i>
+
+            Configuración del Escaneo
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <form id="scanForm">
+
+            {% csrf_token %}
+
+            <div class="row">
+
+                <div class="col-lg-8">
+
+                    <label class="form-label">
+
+                        URL Objetivo
+
+                    </label>
+
+                    <input
+
+                        id="target_url"
+
+                        name="target_url"
+
+                        type="url"
+
+                        class="form-control form-control-lg"
+
+                        placeholder="http://127.0.0.1:8001"
+
+                        required>
+
+                    <small class="text-muted">
+
+                        Ejemplo:
+                        http://127.0.0.1:8001
+                        https://gestiondeinformacion.unal.edu.co:8000
+
+                    </small>
+
+                </div>
+
+                <div class="col-lg-4">
+
+                    <label class="form-label">
+
+                        Perfil
+
+                    </label>
+
+                    <select
+
+                        id="scan_profile"
+
+                        class="form-select form-select-lg">
+
+                        <option value="quick">
+
+                            Escaneo Rápido
+
+                        </option>
+
+                        <option value="normal" selected>
+
+                            Escaneo Completo
+
+                        </option>
+
+                        <option value="deep">
+
+                            Escaneo Profundo
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+            <h5>
+
+                <i class="fa-solid fa-toolbox"></i>
+
+                Herramientas Disponibles
+
+            </h5>
+
+            <div class="row mt-3">
+
+                {% for tool in tools %}
+
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+
+                    <div class="card tool-card h-100">
+
+                        <div class="card-body">
+
+                            <div class="form-check">
+
+                                <input
+
+                                class="form-check-input tool-checkbox"
+
+                                type="checkbox"
+
+                                name="tools"
+
+                                value="{{ tool }}"
+
+                                id="{{ tool }}"
+
+                                checked>
+
+                                <label
+
+                                    class="form-check-label fw-bold"
+
+                                    for="{{ tool }}">
+
+                                    {{ tool|upper }}
+
+                                </label>
+
+                            </div>
+
+                            <small class="text-muted">
+
+                                Motor de análisis
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            <div class="row mt-4">
+
+                <div class="col-lg-12 text-center">
+
+                    <button
+
+                        type="button"
+
+                        id="btnRunSelected"
+
+                        class="btn btn-success btn-lg px-5">
+
+                        <i class="fa-solid fa-play"></i>
+
+                        Ejecutar Escaneo
+
+                    </button>
+
+                    <button
+
+                        type="button"
+
+                        id="btnRunAll"
+
+                        class="btn btn-danger btn-lg px-5 ms-3">
+
+                        <i class="fa-solid fa-bolt"></i>
+
+                        Ejecutar Todas
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- ESTADO DEL ESCANEO -->
+<!-- ========================================================= -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-dark text-white">
+
+        <h5 class="mb-0">
+
+            <i class="fa-solid fa-wave-square"></i>
+
+            Estado del Escaneo
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="progress mb-3" style="height:30px;">
+
+            <div
+
+                id="scanProgress"
+
+                class="progress-bar progress-bar-striped progress-bar-animated"
+
+                role="progressbar"
+
+                style="width:0%;">
+
+                0%
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-4">
+
+                <strong>Estado:</strong>
+
+                <span id="scanStatus">
+
+                    Esperando...
+
+                </span>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <strong>Herramienta actual:</strong>
+
+                <span id="currentTool">
+
+                    -
+
+                </span>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <strong>Último escaneo:</strong>
+
+                <span id="lastScan">
+
+                    Nunca
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ========================================================= -->
+<!-- RESULTADOS DE LAS HERRAMIENTAS -->
+<!-- ========================================================= -->
+
+<div class="row mt-4">
+
+    <div class="col-12">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-success text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="fa-solid fa-chart-line"></i>
+
+                    Resultados de las Herramientas
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table
+                        class="table table-hover align-middle"
+                        id="resultsTable">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th width="60">
+
+                                    #
+
+                                </th>
+
+                                <th>
+
+                                    Herramienta
+
+                                </th>
+
+                                <th>
+
+                                    Estado
+
+                                </th>
+
+                                <th>
+
+                                    Riesgo
+
+                                </th>
+
+                                <th>
+
+                                    Hallazgos
+
+                                </th>
+
+                                <th>
+
+                                    Duración
+
+                                </th>
+
+                                <th>
+
+                                    Acciones
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="resultsBody">
+
+                            {% for tool in tools %}
+
+                            <tr id="row_{{ tool }}">
+
+                                <td>
+
+                                    <i class="fa-solid fa-shield-halved text-primary"></i>
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ tool|upper }}
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        class="badge bg-secondary"
+                                        id="status_{{ tool }}">
+
+                                        Pendiente
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        class="badge bg-success"
+                                        id="risk_{{ tool }}">
+
+                                        -
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <span id="findings_{{ tool }}">
+
+                                        0
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <span id="duration_{{ tool }}">
+
+                                        -
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <button
+
+                                        class="btn btn-outline-primary btn-sm"
+
+                                        id="details_{{ tool }}"
+
+                                        disabled>
+
+                                        <i class="fa-solid fa-eye"></i>
+
+                                        Ver
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- CONSOLA DEL ESCANEO -->
+<!-- ========================================================= -->
+
+<div class="row mt-4">
+
+    <div class="col-12">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-header bg-dark text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="fa-solid fa-terminal"></i>
+
+                    Consola de Ejecución
+
+                </h5>
+
+            </div>
+
+            <div class="card-body p-0">
+
+<textarea
+
+id="scanConsole"
+
+class="form-control"
+
+rows="38"
+
+readonly
+
+style="
+background:#101820;
+color:#44ff99;
+font-family:Consolas;
+font-size:13px;
+border:none;
+resize:none;
+width: 1000px;
+">
+
+Esperando inicio del escaneo...
+
+</textarea>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- RESUMEN DEL ESCANEO -->
+<!-- ========================================================= -->
+
+<div class="row mt-4">
+
+    <div class="col-md-3">
+
+        <div class="card text-center shadow-sm">
+
+            <div class="card-body">
+
+                <h3 id="summaryTotal">
+
+                    0
+
+                </h3>
+
+                <small>
+
+                    Herramientas Ejecutadas
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card text-center shadow-sm">
+
+            <div class="card-body">
+
+                <h3 id="summaryFindings">
+
+                    0
+
+                </h3>
+
+                <small>
+
+                    Hallazgos
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card text-center shadow-sm">
+
+            <div class="card-body">
+
+                <h3 id="summaryCritical">
+
+                    0
+
+                </h3>
+
+                <small>
+
+                    Vulnerabilidades Críticas
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card text-center shadow-sm">
+
+            <div class="card-body">
+
+                <h3 id="summaryScore">
+
+                    100
+
+                </h3>
+
+                <small>
+
+                    Score Global
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ========================================================= -->
+<!-- GRÁFICOS -->
+<!-- ========================================================= -->
+
+<div class="row mt-4">
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-primary text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="fa-solid fa-chart-pie"></i>
+
+                    Distribución de Vulnerabilidades
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <canvas
+                    id="riskChart"
+                    height="250">
+                </canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-secondary text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="fa-solid fa-chart-column"></i>
+
+                    Herramientas Ejecutadas
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <canvas
+                    id="toolChart"
+                    height="250">
+                </canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- HISTORIAL RÁPIDO -->
+<!-- ========================================================= -->
+
+<div class="row mt-4">
+
+<div class="col-12">
+
+<div class="card shadow-sm border-0">
+
+<div class="card-header bg-dark text-white">
+
+<h5 class="mb-0">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+Últimos Escaneos
+
+</h5>
+
+</div>
+
+<div class="card-body">
+
+<table class="table table-hover">
+
+<thead>
+
+<tr>
+
+<th>Fecha</th>
+
+<th>Objetivo</th>
+
+<th>Estado</th>
+
+<th>Score</th>
+
+<th>Acciones</th>
+
+</tr>
+
+</thead>
+
+<tbody id="historyTable">
+
+{% for scan in scans %}
+
+<tr>
+
+<td>
+
+{{ scan.started_at|date:"d/m/Y H:i" }}
+
+</td>
+
+<td>
+
+{{ scan.target_url }}
+
+</td>
+
+<td>
+
+{{ scan.status }}
+
+</td>
+
+<td>
+
+{{ scan.score }}
+
+</td>
+
+<td>
+
+<a
+href="{% url 'scaneos:detail' scan.id %}"
+class="btn btn-sm btn-outline-primary">
+
+Ver
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5" class="text-center">
+
+No existen escaneos.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="{% static 'scaneos/js/dashboard.js' %}"></script>
+
+{% endblock %}

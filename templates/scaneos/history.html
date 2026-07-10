@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Historial de Escaneos
+{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet"
+      href="{% static 'scaneos/css/dashboard.css' %}">
+
+<style>
+
+.history-card{
+
+    border-radius:12px;
+
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+
+}
+
+.table thead{
+
+    background:#1f2937;
+
+    color:white;
+
+}
+
+.badge-success{
+
+    background:#198754;
+
+}
+
+.badge-warning{
+
+    background:#ffc107;
+    color:#000;
+
+}
+
+.badge-danger{
+
+    background:#dc3545;
+
+}
+
+.score-good{
+
+    color:#198754;
+    font-weight:bold;
+
+}
+
+.score-medium{
+
+    color:#fd7e14;
+    font-weight:bold;
+
+}
+
+.score-low{
+
+    color:#dc3545;
+    font-weight:bold;
+
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h2>
+
+<i class="fa fa-history"></i>
+
+Historial de Escaneos
+
+</h2>
+
+<a href="{% url 'scaneos:dashboard' %}"
+class="btn btn-primary">
+
+<i class="fa fa-arrow-left"></i>
+
+Volver al Dashboard
+
+</a>
+
+</div>
+
+<div class="card history-card">
+
+<div class="card-header">
+
+<strong>
+
+Escaneos realizados
+
+</strong>
+
+</div>
+
+<div class="card-body">
+
+<div class="table-responsive">
+
+<table class="table table-hover table-striped align-middle">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>Objetivo</th>
+
+<th>Herramienta</th>
+
+<th>Estado</th>
+
+<th>Score</th>
+
+<th>Hallazgos</th>
+
+<th>Duración</th>
+
+<th>Fecha</th>
+
+<th>Acciones</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for scan in scans %}
+
+<tr>
+
+<td>
+
+{{ scan.id }}
+
+</td>
+
+<td>
+
+{{ scan.target }}
+
+</td>
+
+<td>
+
+<strong>
+
+{{ scan.tool|upper }}
+
+</strong>
+
+</td>
+
+<td>
+
+{% if scan.status == "success" %}
+
+<span class="badge bg-success">
+
+Correcto
+
+</span>
+
+{% elif scan.status == "warning" %}
+
+<span class="badge bg-warning">
+
+Advertencias
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+Error
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if scan.score >= 80 %}
+
+<span class="score-good">
+
+{{ scan.score }}
+
+</span>
+
+{% elif scan.score >= 50 %}
+
+<span class="score-medium">
+
+{{ scan.score }}
+
+</span>
+
+{% else %}
+
+<span class="score-low">
+
+{{ scan.score }}
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ scan.findings }}
+
+</td>
+
+<td>
+
+{{ scan.duration }} s
+
+</td>
+
+<td>
+
+{{ scan.started_at|date:"d/m/Y H:i:s" }}
+
+</td>
+
+<td>
+
+<a href="{% url 'scaneos:detail' scan.id %}"
+
+class="btn btn-sm btn-outline-primary">
+
+Ver
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="9" class="text-center">
+
+No existen escaneos registrados.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

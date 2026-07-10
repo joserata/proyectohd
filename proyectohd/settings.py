@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'applications.home',
     'applications.pruebastest',
     'applications.security',
+    'applications.scaneos',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,1290 @@
+/**********************************************************************
+ SCANEOS
+ Dashboard CSS
+**********************************************************************/
+
+:root{
+
+    --primary:#0d6efd;
+
+    --secondary:#6c757d;
+
+    --success:#198754;
+
+    --warning:#ffc107;
+
+    --danger:#dc3545;
+
+    --info:#0dcaf0;
+
+    --dark:#0b1220;
+
+    --card:#172130;
+
+    --border:#2f3e55;
+
+    --text:#f5f7fa;
+
+    --muted:#9ba8b8;
+
+    --terminal:#0a0f17;
+
+    --terminalText:#00ff6a;
+
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+
+}
+
+
+
+body{
+
+    background:#101826;
+
+    color:var(--text);
+
+    font-family:
+
+    "Segoe UI",
+
+    Arial,
+
+    sans-serif;
+
+}
+
+
+
+.container-fluid{
+
+    padding:30px;
+
+}
+
+
+
+h1,h2,h3,h4,h5{
+
+    font-weight:600;
+
+}
+
+
+
+.card{
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+    box-shadow:var(--shadow);
+
+    transition:.30s;
+
+}
+
+
+
+.card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:
+
+    0 15px 40px rgba(0,0,0,.55);
+
+}
+
+
+
+.card-header{
+
+    border-bottom:1px solid var(--border);
+
+    font-weight:600;
+
+}
+
+
+
+.card-body{
+
+    color:var(--text);
+
+}
+/**********************************************************************
+ FORMULARIOS
+**********************************************************************/
+
+.form-label{
+
+    color:var(--text);
+
+    font-weight:600;
+
+    margin-bottom:8px;
+
+}
+
+.form-control,
+.form-select{
+
+    background:#1a2435;
+
+    border:1px solid var(--border);
+
+    color:white;
+
+    border-radius:10px;
+
+    padding:12px;
+
+    transition:.25s;
+
+}
+
+.form-control:focus,
+.form-select:focus{
+
+    background:#1a2435;
+
+    color:white;
+
+    border-color:var(--primary);
+
+    box-shadow:0 0 10px rgba(13,110,253,.35);
+
+}
+
+.form-control::placeholder{
+
+    color:#8895a7;
+
+}
+
+
+
+/**********************************************************************
+ BOTONES
+**********************************************************************/
+
+.btn{
+
+    border-radius:10px;
+
+    padding:10px 18px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.btn-primary{
+
+    background:var(--primary);
+
+    border:none;
+
+}
+
+.btn-success{
+
+    background:var(--success);
+
+    border:none;
+
+}
+
+.btn-danger{
+
+    background:var(--danger);
+
+    border:none;
+
+}
+
+.btn-secondary{
+
+    background:#445066;
+
+    border:none;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 8px 18px rgba(0,0,0,.35);
+
+}
+
+
+
+/**********************************************************************
+ TARJETAS DE MÉTRICAS
+**********************************************************************/
+
+.border-left-danger{
+
+    border-left:6px solid var(--danger)!important;
+
+}
+
+.border-left-warning{
+
+    border-left:6px solid var(--warning)!important;
+
+}
+
+.border-left-success{
+
+    border-left:6px solid var(--success)!important;
+
+}
+
+.border-left-primary{
+
+    border-left:6px solid var(--primary)!important;
+
+}
+
+.display-6{
+
+    font-size:2.3rem;
+
+    font-weight:700;
+
+}
+
+.text-xs{
+
+    font-size:.78rem;
+
+    letter-spacing:.12rem;
+
+}
+
+
+
+/**********************************************************************
+ BADGES
+**********************************************************************/
+
+.badge{
+
+    padding:8px 15px;
+
+    font-size:.90rem;
+
+    border-radius:8px;
+
+}
+
+.bg-success{
+
+    background:var(--success)!important;
+
+}
+
+.bg-danger{
+
+    background:var(--danger)!important;
+
+}
+
+.bg-warning{
+
+    background:var(--warning)!important;
+
+    color:#000;
+
+}
+
+.bg-info{
+
+    background:var(--info)!important;
+
+    color:#000;
+
+}
+
+.bg-secondary{
+
+    background:#5d6877!important;
+
+}
+
+
+
+/**********************************************************************
+ BARRA DE PROGRESO
+**********************************************************************/
+
+.progress{
+
+    background:#2a3344;
+
+    border-radius:30px;
+
+    height:24px;
+
+    overflow:hidden;
+
+}
+
+.progress-bar{
+
+    font-weight:600;
+
+    transition:width .5s;
+
+}
+
+
+
+/**********************************************************************
+ ICONOS
+**********************************************************************/
+
+.fa-3x{
+
+    opacity:.80;
+
+}
+
+.card:hover .fa-3x{
+
+    transform:scale(1.08);
+
+    transition:.3s;
+
+}
+/**********************************************************************
+ TABLAS
+**********************************************************************/
+
+.table{
+
+    color:var(--text);
+
+    margin-bottom:0;
+
+}
+
+.table thead{
+
+    background:#111827;
+
+}
+
+.table thead th{
+
+    border-bottom:2px solid var(--primary);
+
+    color:white;
+
+    text-transform:uppercase;
+
+    letter-spacing:.05rem;
+
+    font-size:.82rem;
+
+}
+
+.table tbody tr{
+
+    transition:.25s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#1e293b;
+
+}
+
+.table td,
+.table th{
+
+    vertical-align:middle;
+
+    border-color:#344155;
+
+}
+
+.table-responsive{
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+}
+
+
+
+/**********************************************************************
+ ALERTAS
+**********************************************************************/
+
+.alert{
+
+    border:none;
+
+    border-radius:10px;
+
+    margin-bottom:10px;
+
+    font-weight:500;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+
+}
+
+.alert-danger{
+
+    background:#4d1117;
+
+    color:#ffd5d8;
+
+    border-left:5px solid var(--danger);
+
+}
+
+.alert-warning{
+
+    background:#594400;
+
+    color:#ffeaa7;
+
+    border-left:5px solid var(--warning);
+
+}
+
+.alert-success{
+
+    background:#103d22;
+
+    color:#d4edda;
+
+    border-left:5px solid var(--success);
+
+}
+
+.alert-info{
+
+    background:#00384f;
+
+    color:#d9f6ff;
+
+    border-left:5px solid var(--info);
+
+}
+
+
+
+/**********************************************************************
+ LISTAS
+**********************************************************************/
+
+.list-group{
+
+    background:transparent;
+
+}
+
+.list-group-item{
+
+    background:#162132;
+
+    color:white;
+
+    border:1px solid #2e3c55;
+
+    transition:.25s;
+
+}
+
+.list-group-item:hover{
+
+    background:#22314a;
+
+    cursor:pointer;
+
+}
+
+
+
+/**********************************************************************
+ CONSOLA SOC
+**********************************************************************/
+
+#consoleLog{
+
+    background:var(--terminal);
+
+    color:var(--terminalText);
+
+    border-radius:10px;
+
+    border:1px solid #22314a;
+
+    font-family:
+
+    Consolas,
+
+    monospace;
+
+    font-size:13px;
+
+    line-height:1.5;
+
+    overflow:auto;
+
+    white-space:pre-wrap;
+
+    padding:15px;
+
+}
+
+
+
+/**********************************************************************
+ SCROLLBAR
+**********************************************************************/
+
+#consoleLog::-webkit-scrollbar,
+
+.list-group::-webkit-scrollbar,
+
+.table-responsive::-webkit-scrollbar{
+
+    width:8px;
+
+    height:8px;
+
+}
+
+#consoleLog::-webkit-scrollbar-thumb,
+
+.list-group::-webkit-scrollbar-thumb,
+
+.table-responsive::-webkit-scrollbar-thumb{
+
+    background:#3d4c63;
+
+    border-radius:10px;
+
+}
+
+#consoleLog::-webkit-scrollbar-track,
+
+.list-group::-webkit-scrollbar-track,
+
+.table-responsive::-webkit-scrollbar-track{
+
+    background:#101826;
+
+}
+
+
+
+/**********************************************************************
+ BOTONES DE LA TABLA
+**********************************************************************/
+
+.table .btn{
+
+    padding:4px 10px;
+
+    font-size:.80rem;
+
+    border-radius:8px;
+
+}
+
+
+
+/**********************************************************************
+ ESTADOS
+**********************************************************************/
+
+.status-ok{
+
+    color:#22c55e;
+
+    font-weight:700;
+
+}
+
+.status-warning{
+
+    color:#facc15;
+
+    font-weight:700;
+
+}
+
+.status-critical{
+
+    color:#ef4444;
+
+    font-weight:700;
+
+}
+
+.status-running{
+
+    color:#38bdf8;
+
+    font-weight:700;
+
+}
+
+.status-offline{
+
+    color:#9ca3af;
+
+    font-weight:700;
+
+}
+
+
+
+/**********************************************************************
+ SEVERIDADES
+**********************************************************************/
+
+.severity-critical{
+
+    background:#7f1d1d;
+
+    color:white;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+}
+
+.severity-high{
+
+    background:#dc2626;
+
+    color:white;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+}
+
+.severity-medium{
+
+    background:#f59e0b;
+
+    color:black;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+}
+
+.severity-low{
+
+    background:#22c55e;
+
+    color:white;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+}
+
+.severity-info{
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+}
+/**********************************************************************
+ ANIMACIONES
+**********************************************************************/
+
+@keyframes pulse{
+
+    0%{
+
+        transform:scale(1);
+
+    }
+
+    50%{
+
+        transform:scale(1.05);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+    }
+
+}
+
+
+
+@keyframes glow{
+
+    0%{
+
+        box-shadow:0 0 5px rgba(13,110,253,.20);
+
+    }
+
+    50%{
+
+        box-shadow:
+
+            0 0 20px rgba(13,110,253,.65),
+
+            0 0 40px rgba(13,110,253,.35);
+
+    }
+
+    100%{
+
+        box-shadow:0 0 5px rgba(13,110,253,.20);
+
+    }
+
+}
+
+
+
+@keyframes blink{
+
+    0%{
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        opacity:.30;
+
+    }
+
+    100%{
+
+        opacity:1;
+
+    }
+
+}
+
+
+
+@keyframes scan{
+
+    from{
+
+        left:-100%;
+
+    }
+
+    to{
+
+        left:100%;
+
+    }
+
+}
+
+
+
+/**********************************************************************
+ TARJETAS
+**********************************************************************/
+
+.card{
+
+    overflow:hidden;
+
+    position:relative;
+
+}
+
+
+
+.card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:-100%;
+
+    width:80px;
+
+    height:100%;
+
+    background:
+
+    linear-gradient(
+
+        90deg,
+
+        transparent,
+
+        rgba(255,255,255,.08),
+
+        transparent
+
+    );
+
+}
+
+
+
+.card:hover::before{
+
+    animation:scan 1.5s linear;
+
+}
+
+
+
+.card:hover{
+
+    animation:pulse .8s;
+
+}
+
+
+
+/**********************************************************************
+ EFECTO GLOW
+**********************************************************************/
+
+.glow{
+
+    animation:glow 2s infinite;
+
+}
+
+
+
+.glow-danger{
+
+    box-shadow:
+
+        0 0 15px rgba(220,53,69,.40);
+
+}
+
+
+
+.glow-success{
+
+    box-shadow:
+
+        0 0 15px rgba(25,135,84,.40);
+
+}
+
+
+
+.glow-warning{
+
+    box-shadow:
+
+        0 0 15px rgba(255,193,7,.40);
+
+}
+
+
+
+/**********************************************************************
+ TERMINAL
+**********************************************************************/
+
+#consoleLog{
+
+    position:relative;
+
+}
+
+
+
+#consoleLog::after{
+
+    content:"█";
+
+    color:#00ff66;
+
+    animation:blink 1s infinite;
+
+}
+
+
+
+/**********************************************************************
+ PANEL DE ESTADO
+**********************************************************************/
+
+.online{
+
+    color:#00ff66;
+
+    animation:blink 1s infinite;
+
+}
+
+
+
+.offline{
+
+    color:#dc3545;
+
+}
+
+
+
+/**********************************************************************
+ CÍRCULOS DE ESTADO
+**********************************************************************/
+
+.status-dot{
+
+    width:12px;
+
+    height:12px;
+
+    border-radius:50%;
+
+    display:inline-block;
+
+    margin-right:8px;
+
+}
+
+
+
+.status-green{
+
+    background:#00ff66;
+
+    animation:blink 1.2s infinite;
+
+}
+
+
+
+.status-red{
+
+    background:#ff4d4d;
+
+}
+
+
+
+.status-yellow{
+
+    background:#ffc107;
+
+}
+
+
+
+/**********************************************************************
+ SCORE DE RIESGO
+**********************************************************************/
+
+#riskScore{
+
+    font-size:3rem;
+
+    font-weight:bold;
+
+}
+
+
+
+.risk-low{
+
+    color:#22c55e;
+
+}
+
+
+
+.risk-medium{
+
+    color:#ffc107;
+
+}
+
+
+
+.risk-high{
+
+    color:#fd7e14;
+
+}
+
+
+
+.risk-critical{
+
+    color:#dc3545;
+
+    animation:pulse 1.5s infinite;
+
+}
+
+
+
+/**********************************************************************
+ TRANSICIONES
+**********************************************************************/
+
+button,
+
+.card,
+
+.list-group-item,
+
+.table tbody tr{
+
+    transition:all .30s ease;
+
+}
+
+
+
+/**********************************************************************
+ RESPONSIVE
+**********************************************************************/
+
+@media(max-width:1200px){
+
+    .display-6{
+
+        font-size:2rem;
+
+    }
+
+}
+
+
+
+@media(max-width:992px){
+
+    .container-fluid{
+
+        padding:15px;
+
+    }
+
+    .card{
+
+        margin-bottom:20px;
+
+    }
+
+}
+
+
+
+@media(max-width:768px){
+
+    .display-6{
+
+        font-size:1.7rem;
+
+    }
+
+    h1{
+
+        font-size:1.6rem;
+
+    }
+
+    h5{
+
+        font-size:1rem;
+
+    }
+
+    #consoleLog{
+
+        height:220px;
+
+    }
+
+}
+
+
+
+@media(max-width:576px){
+
+    .btn{
+
+        width:100%;
+
+        margin-bottom:10px;
+
+    }
+
+}
+
+
+
+/**********************************************************************
+ LOADER DE ESCANEO
+**********************************************************************/
+
+.loading{
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+
+.loading::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:-100%;
+
+    width:100%;
+
+    height:100%;
+
+    background:
+
+    linear-gradient(
+
+        90deg,
+
+        transparent,
+
+        rgba(255,255,255,.18),
+
+        transparent
+
+    );
+
+    animation:scan 1.3s infinite;
+
+}
+
+
+
+/**********************************************************************
+ TOOLTIP
+**********************************************************************/
+
+.tooltip-inner{
+
+    background:#111827;
+
+    color:white;
+
+}
+
+
+
+/**********************************************************************
+ FOOTER
+**********************************************************************/
+
+.footer{
+
+    color:#8b98aa;
+
+    text-align:center;
+
+    padding:20px;
+
+    font-size:.85rem;
+
+}
+
+
+
+/**********************************************************************
+ LOGO SOC
+**********************************************************************/
+
+.logo{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    color:#0dcaf0;
+
+    letter-spacing:2px;
+
+}
+
+
+
+/**********************************************************************
+ EFECTO CYBER
+**********************************************************************/
+
+.cyber{
+
+    text-shadow:
+
+        0 0 5px #00ffff,
+
+        0 0 10px #00ffff,
+
+        0 0 20px #00ffff;
+
+}
+
+
+
+/**********************************************************************
+ BADGE LIVE
+**********************************************************************/
+
+.live{
+
+    background:#dc3545;
+
+    color:white;
+
+    padding:5px 12px;
+
+    border-radius:30px;
+
+    animation:blink 1s infinite;
+
+}

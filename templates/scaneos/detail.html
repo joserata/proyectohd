@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Detalle del Escaneo
+{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet"
+      href="{% static 'scaneos/css/dashboard.css' %}">
+
+<style>
+
+.detail-card{
+
+    border-radius:12px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+
+    margin-bottom:25px;
+
+}
+
+.output-box{
+
+    background:#101820;
+
+    color:#58ff7e;
+
+    border-radius:8px;
+
+    padding:20px;
+
+    font-size:13px;
+
+    max-height:600px;
+
+    overflow:auto;
+
+    white-space:pre-wrap;
+
+    font-family:Consolas,monospace;
+
+}
+
+.metric{
+
+    text-align:center;
+
+    padding:15px;
+
+}
+
+.metric h3{
+
+    margin:0;
+
+    font-weight:bold;
+
+}
+
+.metric span{
+
+    color:#666;
+
+    font-size:14px;
+
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h2>
+
+<i class="fa fa-search"></i>
+
+Detalle del Escaneo
+
+</h2>
+
+<div>
+
+<a href="{% url 'scaneos:dashboard' %}"
+class="btn btn-secondary">
+
+<i class="fa fa-arrow-left"></i>
+
+Dashboard
+
+</a>
+
+<a href="{% url 'scaneos:history' %}"
+class="btn btn-dark">
+
+Historial
+
+</a>
+
+</div>
+
+</div>
+
+<div class="card detail-card">
+
+<div class="card-header bg-primary text-white">
+
+Información General
+
+</div>
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-4">
+
+<strong>Objetivo</strong>
+
+<p>{{ scan.target }}</p>
+
+</div>
+
+<div class="col-md-4">
+
+<strong>Herramienta</strong>
+
+<p>{{ scan.tool|upper }}</p>
+
+</div>
+
+<div class="col-md-4">
+
+<strong>Estado</strong>
+
+<p>
+
+{% if scan.status == "success" %}
+
+<span class="badge bg-success">
+
+Finalizado
+
+</span>
+
+{% elif scan.status == "warning" %}
+
+<span class="badge bg-warning">
+
+Advertencias
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+Error
+
+</span>
+
+{% endif %}
+
+</p>
+
+</div>
+
+</div>
+
+<div class="row mt-3">
+
+<div class="col-md-3 metric">
+
+<h3>{{ scan.score }}</h3>
+
+<span>Score</span>
+
+</div>
+
+<div class="col-md-3 metric">
+
+<h3>{{ scan.findings }}</h3>
+
+<span>Hallazgos</span>
+
+</div>
+
+<div class="col-md-3 metric">
+
+<h3>{{ scan.duration }}</h3>
+
+<span>Segundos</span>
+
+</div>
+
+<div class="col-md-3 metric">
+
+<h3>{{ scan.started_at }}</h3>
+
+<span>Inicio</span>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card detail-card">
+
+<div class="card-header bg-warning">
+
+Recomendaciones
+
+</div>
+
+<div class="card-body">
+
+{{ scan.recommendation|linebreaks }}
+
+</div>
+
+</div>
+
+<div class="card detail-card">
+
+<div class="card-header bg-dark text-white">
+
+Salida Completa
+
+</div>
+
+<div class="card-body">
+
+<div class="output-box">
+
+{{ scan.output }}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

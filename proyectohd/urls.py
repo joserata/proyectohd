@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('applications.home.urls')),
     path('pruebastest/', include('applications.pruebastest.urls')),
     path('security/', include('applications.security.urls')),
+    path('scaneos/', include('applications.scaneos.urls')),
 ]

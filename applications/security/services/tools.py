@@ -1,150 +1,197 @@
+import shutil
 import sys
 from django.conf import settings
 
 PYTHON = sys.executable
 BASE_DIR = settings.BASE_DIR
 
+WAPITI = shutil.which("wapiti")
 
-TOOLS = {
+def get_command(tool, target_url=None):
+    """
+    Devuelve el comando que debe ejecutar cada herramienta.
+    Retorna None cuando la herramienta requiere una URL y ésta no fue enviada.
+    """
 
-    "bandit": [
-        PYTHON,
-        "-m",
-        "bandit",
-        "-r",
-        "applications",
-    ],
+    commands = {
 
-    "semgrep": [
-        PYTHON,
-        "-m",
-        "semgrep",
-        "scan",
-        "--config",
-        "auto",
-        "applications",
-    ],
+        # ==========================
+        # SAST
+        # ==========================
 
-    "safety": [
-        PYTHON,
-        "-m",
-        "safety",
-        "scan",
-    ],
+        "bandit": [
+            PYTHON,
+            "-m",
+            "bandit",
+            "-r",
+            "applications",
+        ],
 
-    "pip_audit": [
-        PYTHON,
-        "-m",
-        "pip_audit",
-    ],
+        "semgrep": [
+            PYTHON,
+            "-m",
+            "semgrep",
+            "scan",
+            "--config",
+            "auto",
+            "applications",
+        ],
 
-    "pylint": [
-        PYTHON,
-        "-m",
-        "pylint",
-        "--recursive=y",
-        "applications",
-    ],
+        "pylint": [
+            PYTHON,
+            "-m",
+            "pylint",
+            "--recursive=y",
+            "applications",
+        ],
 
-    "flake8": [
-        PYTHON,
-        "-m",
-        "flake8",
-        "applications",
-    ],
+        "flake8": [
+            PYTHON,
+            "-m",
+            "flake8",
+            "applications",
+        ],
 
-    "black": [
-        PYTHON,
-        "-m",
-        "black",
-        "--check",
-        "applications",
-    ],
+        "black": [
+            PYTHON,
+            "-m",
+            "black",
+            "--check",
+            "applications",
+        ],
 
-    "mypy": [
-        PYTHON,
-        "-m",
-        "mypy",
-        "applications",
-    ],
+        "mypy": [
+            PYTHON,
+            "-m",
+            "mypy",
+            "applications",
+        ],
 
-    "detect_secrets": [
-        PYTHON,
-        "-m",
-        "detect_secrets",
-        "scan",
-        "applications",
-    ],
+        "radon": [
+            PYTHON,
+            "-m",
+            "radon",
+            "cc",
+            "applications",
+            "-s",
+            "-a",
+        ],
 
-    "radon": [
-        PYTHON,
-        "-m",
-        "radon",
-        "cc",
-        "applications",
-        "-s",
-        "-a",
-    ],
+        "xenon": [
+            PYTHON,
+            "-m",
+            "xenon",
+            "applications",
+        ],
 
-    "xenon": [
-        PYTHON,
-        "-m",
-        "xenon",
-        "applications",
-    ],
+        "detect_secrets": [
+            PYTHON,
+            "-m",
+            "detect_secrets",
+            "scan",
+            "applications",
+        ],
 
-    "coverage": [
-        PYTHON,
-        "-m",
-        "coverage",
-        "run",
-        "manage.py",
-        "test",
-    ],
+        # ==========================
+        # DEPENDENCIAS
+        # ==========================
 
-    "pytest": [
-        PYTHON,
-        "-m",
-        "pytest",
-    ],
+        "pip_audit": [
+            PYTHON,
+            "-m",
+            "pip_audit",
+        ],
 
-    "playwright": [
-        PYTHON,
-        "tests/e2e/playwright_smoke.py",
-    ],
+        "safety": [
+            PYTHON,
+            "-m",
+            "safety",
+            "scan",
+        ],
 
-    "locust": [
-        PYTHON,
-        "-m",
-        "locust",
-        "-f",
-        "locustfile.py",
-        "--headless",
+        "pip_licenses": [
+            PYTHON,
+            "-m",
+            "piplicenses",
+        ],
+
+        "cyclonedx": [
+            PYTHON,
+            "-m",
+            "cyclonedx_py",
+            "environment",
+        ],
+
+        # ==========================
+        # TESTING
+        # ==========================
+
+        "pytest": [
+            PYTHON,
+            "-m",
+            "pytest",
+        ],
+
+        "coverage": [
+            PYTHON,
+            "-m",
+            "coverage",
+            "run",
+            "manage.py",
+            "test",
+        ],
+    }
+
+    # Herramientas que NO necesitan URL
+    if tool in commands:
+        return commands[tool]
+
+    # A partir de aquí todas requieren URL
+    if not target_url:
+        return None
+
+    # ==========================
+    # DAST
+    # ==========================
+
+    if tool == "wapiti":
+
+        return [
+
+        WAPITI,
+
         "-u",
-        "10",
-        "-r",
-        "2",
-        "-t",
-        "20s",
-    ],
 
-    "pip_licenses": [
-        PYTHON,
-        "-m",
-        "piplicenses",
-    ],
+        target_url,
 
-    "cyclonedx": [
-        PYTHON,
-        "-m",
-        "cyclonedx_py",
-        "environment",
-    ],
+        "--flush-session",
 
-    "wapiti": [
-        PYTHON,
-        "-m",
-        "wapiti",
-    ],
+    ]
 
-}
+    if tool == "locust":
+        return [
+            PYTHON,
+            "-m",
+            "locust",
+            "-f",
+            "locustfile.py",
+            "--host",
+            target_url,
+            "--headless",
+            "-u",
+            "10",
+            "-r",
+            "2",
+            "-t",
+            "20s",
+        ]
+
+    if tool == "playwright":
+        return [
+            PYTHON,
+            "tests/e2e/playwright_smoke.py",
+            target_url,
+        ]
+
+    # Herramienta no soportada
+    return None
