@@ -1,460 +1,99 @@
-/********************************************************************
- * DEVSECOPS CENTER
- * dashboard.js
- ********************************************************************/
+/* Dashboard DevSecOps: la lista de herramientas se genera en Django. */
+const reports = {};
+const csrf = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
 
-let reports = {};
-
-const csrf =
-document.querySelector("[name=csrfmiddlewaretoken]").value;
-
-const tools = [
-
-    "bandit",
-    "semgrep",
-    "safety",
-    "pip_audit",
-    "pylint",
-    "flake8",
-    "black",
-    "mypy",
-    "detect_secrets",
-    "radon",
-    "xenon",
-    "coverage",
-    "playwright",
-    "locust",
-    "pytest",
-    "pip_licenses",
-    "cyclonedx",
-    "yara",
-    "wapiti"
-
-];
-
-
-
-/************************************************************
- EJECUTAR UNA HERRAMIENTA
-************************************************************/
-
-async function runTool(tool){
-
-    const url=document.getElementById("target_url").value;
-
-    setStatus(tool,"Ejecutando...","warning");
-
-    const start=performance.now();
-
-    try{
-
-        const response=await fetch(
-
-            "/security/run/"+tool+"/",
-
-            {
-
-                method:"POST",
-
-                headers:{
-
-                    "X-CSRFToken":csrf,
-
-                    "Content-Type":
-                    "application/x-www-form-urlencoded"
-
-                },
-
-                body:new URLSearchParams({
-
-                    target_url:url
-
-                })
-
-            }
-
-        );
-
-        const data=await response.json();
-
-        if(!data.success){
-
-            alert(data.message);
-
-            return;
-
-        }
-
-        reports[tool]=data;
-
-        updateCard(tool,data);
-
-        addHistory(data);
-
-    }
-
-    catch(e){
-
-        console.error(e);
-
-        setStatus(tool,"Error","danger");
-
-    }
-
-    finally{
-
-        console.log(
-
-            tool,
-
-            performance.now()-start
-
-        );
-
-    }
-
+function runUrl(tool) {
+    return (window.securityRunUrlTemplate || "/security/run/__tool__/").replace("__tool__", encodeURIComponent(tool));
 }
 
+function selectedTools() {
+    return [...document.querySelectorAll(".tool-check:checked")].map((input) => input.value);
+}
 
+async function runTool(tool) {
+    const target = document.getElementById("target_url").value.trim();
+    setStatus(tool, "Ejecutando...", "warning");
+    try {
+        const response = await fetch(runUrl(tool), {
+            method: "POST",
+            headers: { "X-CSRFToken": csrf, "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ target_url: target }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            setStatus(tool, "Error", "danger");
+            alert(data.message || "No fue posible ejecutar la herramienta.");
+            return false;
+        }
+        reports[tool] = data;
+        updateCard(tool, data);
+        return true;
+    } catch (error) {
+        console.error(error);
+        setStatus(tool, "Error", "danger");
+        return false;
+    }
+}
 
-/************************************************************
- EJECUTAR TODAS
-************************************************************/
-
-async function runAll(){
-
+async function runSelected() {
+    const tools = selectedTools();
+    if (!tools.length) return alert("Seleccione al menos una herramienta.");
     disableButtons(true);
-
-    for(const tool of tools){
-
-        await runTool(tool);
-
-    }
-
+    for (const tool of tools) await runTool(tool);
     disableButtons(false);
-
 }
 
-
-
-/************************************************************
- ACTUALIZA TARJETA
-************************************************************/
-
-function updateCard(tool,data){
-
-    document.getElementById(
-
-        tool+"_status"
-
-    ).innerHTML=data.status;
-
-    document.getElementById(
-
-        tool+"_duration"
-
-    ).innerHTML=data.duration+" s";
-
-    document.getElementById(
-
-        tool+"_findings"
-
-    ).innerHTML=data.findings;
-
+async function runAll() {
+    document.querySelectorAll(".tool-check").forEach((input) => { input.checked = true; });
+    await runSelected();
 }
 
-
-
-/************************************************************
- CAMBIA COLOR
-************************************************************/
-
-function setStatus(tool,text,color){
-
-    let obj=document.getElementById(
-
-        tool+"_status"
-
-    );
-
-    obj.innerHTML=text;
-
-    obj.className="badge bg-"+color;
-
+function updateCard(tool, data) {
+    document.getElementById(`${tool}_status`).textContent = data.status;
+    document.getElementById(`${tool}_status`).className = `status ${data.status}`;
+    document.getElementById(`${tool}_duration`).textContent = `${data.duration} s`;
+    document.getElementById(`${tool}_findings`).textContent = data.findings ?? 0;
+    const score = document.getElementById(`${tool}_score`);
+    if (score) score.textContent = data.score ?? "--";
 }
 
-
-
-/************************************************************
- HABILITA BOTONES
-************************************************************/
-
-function disableButtons(disabled){
-
-    document
-
-    .querySelectorAll("button")
-
-    .forEach(
-
-        b=>b.disabled=disabled
-
-    );
-
+function setStatus(tool, text, color) {
+    const element = document.getElementById(`${tool}_status`);
+    if (element) { element.textContent = text; element.className = `status ${color}`; }
 }
 
-
-
-/************************************************************
- ABRIR REPORTE
-************************************************************/
-
-function openReport(tool){
-
-    if(!(tool in reports)){
-
-        alert(
-
-            "Debe ejecutar primero esta herramienta."
-
-        );
-
-        return;
-
-    }
-
-    document.getElementById(
-
-        "reportModal"
-
-    ).style.display="block";
-
-    document.getElementById(
-
-        "modalTitle"
-
-    ).innerHTML=tool.toUpperCase();
-
-    document.getElementById(
-
-        "modalRecommendation"
-
-    ).innerHTML=
-
-    reports[tool].recommendation;
-
-    document.getElementById(
-
-        "modalOutput"
-
-    ).textContent=
-
-    reports[tool].output;
-
+function disableButtons(disabled) {
+    document.querySelectorAll("button").forEach((button) => { button.disabled = disabled; });
 }
 
-
-
-/************************************************************
- CERRAR REPORTE
-************************************************************/
-
-function closeReport(){
-
-    document.getElementById(
-
-        "reportModal"
-
-    ).style.display="none";
-
+function openReport(tool) {
+    if (!reports[tool]) return alert("Debe ejecutar primero esta herramienta.");
+    document.getElementById("reportModal").style.display = "block";
+    document.getElementById("modalTitle").textContent = tool.toUpperCase();
+    document.getElementById("modalRecommendation").textContent = reports[tool].recommendation || "Sin información.";
+    document.getElementById("modalOutput").textContent = reports[tool].output || "";
 }
 
+function closeReport() { document.getElementById("reportModal").style.display = "none"; }
 
-
-/************************************************************
- DESCARGAR JSON
-************************************************************/
-
-function downloadReport(tool){
-
-    if(!(tool in reports)){
-
-        return;
-
-    }
-
-    let blob=new Blob(
-
-        [
-
-            JSON.stringify(
-
-                reports[tool],
-
-                null,
-
-                4
-
-            )
-
-        ],
-
-        {
-
-            type:"application/json"
-
-        }
-
-    );
-
-    let a=document.createElement("a");
-
-    a.href=URL.createObjectURL(blob);
-
-    a.download=
-
-    tool+"_report.json";
-
-    a.click();
-
+function downloadReport(tool) {
+    if (!reports[tool]) return alert("Debe ejecutar primero esta herramienta.");
+    const blob = new Blob([JSON.stringify(reports[tool], null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob); link.download = `${tool}_report.json`; link.click();
+    URL.revokeObjectURL(link.href);
 }
 
-
-
-/************************************************************
- EXPORTAR TODOS
-************************************************************/
-
-function downloadAll(){
-
-    let blob=new Blob(
-
-        [
-
-            JSON.stringify(
-
-                reports,
-
-                null,
-
-                4
-
-            )
-
-        ],
-
-        {
-
-            type:"application/json"
-
-        }
-
-    );
-
-    let a=document.createElement("a");
-
-    a.href=URL.createObjectURL(blob);
-
-    a.download="SecurityReport.json";
-
-    a.click();
-
-}
-
-
-
-/************************************************************
- HISTORIAL
-************************************************************/
-
-function addHistory(data){
-
-    const tbody=
-
-    document.querySelector(
-
-        "#historyTable tbody"
-
-    );
-
-    if(!tbody){
-
-        return;
-
-    }
-
-    let row=tbody.insertRow(0);
-
-    row.innerHTML=`
-
-        <td>${data.tool}</td>
-
-        <td>${data.status}</td>
-
-        <td>${data.duration}</td>
-
-        <td>${data.findings}</td>
-
-        <td>${new Date().toLocaleString()}</td>
-
-    `;
-
-}
-
-
-
-/************************************************************
- BUSCAR
-************************************************************/
-
-function filterCards(){
-
-    const txt=
-
-    document.getElementById(
-
-        "searchTool"
-
-    ).value.toLowerCase();
-
-    document
-
-    .querySelectorAll(".tool-card")
-
-    .forEach(card=>{
-
-        card.style.display=
-
-        card.innerText
-
-        .toLowerCase()
-
-        .includes(txt)
-
-        ?
-
-        "block"
-
-        :
-
-        "none";
-
+function clearDashboard() {
+    Object.keys(reports).forEach((tool) => delete reports[tool]);
+    document.querySelectorAll(".tool-card").forEach((card) => {
+        const status = card.querySelector(".status");
+        if (status) { status.textContent = "Pendiente"; status.className = "status waiting"; }
+        card.querySelectorAll("strong").forEach((field) => {
+            if (field.id.endsWith("_findings")) field.textContent = "0";
+            if (field.id.endsWith("_score") || field.id.endsWith("_duration")) field.textContent = "--";
+        });
     });
-
+    document.getElementById("globalScore").textContent = "--";
+    document.getElementById("riskLevel").textContent = "Sin ejecutar";
 }
-
-
-
-/************************************************************
- AUTO REFRESH
-************************************************************/
-
-setInterval(()=>{
-
-    console.log(
-
-        "DevSecOps Dashboard"
-
-    );
-
-},60000);

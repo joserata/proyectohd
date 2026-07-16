@@ -48,6 +48,7 @@ Centro DevSecOps
                 del software desde una única plataforma.
 
             </p>
+            <a class="btn btn-secondary" href="{% url 'security:status_overview' %}">Ver estado de seguridad</a>
 
         </div>
 
@@ -527,6 +528,9 @@ Esperando resultados...
     </div>
 
 </div>
+<script>
+    window.securityRunUrlTemplate = "{% url 'security:run_tool' '__tool__' %}";
+</script>
 <script src="{% static 'security/js/dashboard.js' %}"></script>
 
 {% endblock %}

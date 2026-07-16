@@ -1,4 +1,4 @@
-﻿import ast
+import ast
 from datetime import date
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -206,12 +206,12 @@ def create_status(request):
 
 @login_required(login_url='login')
 def productivity_dashboard(request):
-    selected_developer = request.GET.get('developer', '')
+    selected_developers = [developer for developer in request.GET.getlist('developer') if developer]
     selected_week = request.GET.get('week', '')
 
     performance = DeveloperPerformance.objects.select_related('developer').order_by('developer__username', '-week_start')
-    if selected_developer:
-        performance = performance.filter(developer_id=selected_developer)
+    if selected_developers:
+        performance = performance.filter(developer_id__in=selected_developers)
     if selected_week:
         performance = performance.filter(week_start=selected_week)
 
@@ -221,8 +221,8 @@ def productivity_dashboard(request):
     dev_summary = []
     trend_data = []
     summary_users = users
-    if selected_developer:
-        summary_users = summary_users.filter(id=selected_developer)
+    if selected_developers:
+        summary_users = summary_users.filter(id__in=selected_developers)
 
     for user in summary_users:
         latest_record = DeveloperPerformance.objects.filter(developer=user).order_by('-week_start').first()
@@ -276,6 +276,33 @@ def productivity_dashboard(request):
             'points_svg': ' '.join(svg_points),
         })
 
+    comparison_weeks = list(
+        performance.order_by('week_start').values_list('week_start', flat=True).distinct()
+    )
+    comparison_week_positions = {
+        week: (10 + (index * 80 / max(1, len(comparison_weeks) - 1)))
+        if len(comparison_weeks) > 1 else 50
+        for index, week in enumerate(comparison_weeks)
+    }
+    chart_colors = ['#0f4c81', '#16a34a', '#d97706', '#7c3aed', '#dc2626', '#0891b2']
+    comparison_series = []
+    for index, user in enumerate(summary_users):
+        records = performance.filter(developer=user).order_by('week_start')
+        points = []
+        for record in records:
+            value = record.progress_percentage or record.performance_ratio
+            points.append({
+                'week': record.week_start.strftime('%d/%m'),
+                'value': value,
+                'x': round(comparison_week_positions[record.week_start], 1),
+                'y': round(90 - (min(value, 100) * 0.7), 1),
+            })
+        comparison_series.append({
+            'name': user.username,
+            'color': chart_colors[index % len(chart_colors)],
+            'points': points,
+            'points_svg': ' '.join(f'{point["x"]:.1f},{point["y"]:.1f}' for point in points),
+        })
     context = {
         'performance': performance,
         'users': users,
@@ -283,7 +310,15 @@ def productivity_dashboard(request):
         'chart_data': chart_data,
         'dev_summary': dev_summary,
         'trend_data': trend_data,
-        'selected_developer': selected_developer,
+        'comparison_series': comparison_series,
+        'comparison_weeks': [
+            {
+                'label': week.strftime('%d/%m'),
+                'x': round(comparison_week_positions[week], 1),
+            }
+            for week in comparison_weeks
+        ],
+        'selected_developers': selected_developers,
         'selected_week': selected_week,
         'weeks': DeveloperPerformance.objects.values_list('week_start', flat=True).distinct().order_by('-week_start'),
     }

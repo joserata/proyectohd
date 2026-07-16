@@ -156,6 +156,11 @@ def get_command(tool, target_url=None):
 
     if tool == "wapiti":
 
+        # ``None`` termina provocando un TypeError en subprocess. Devuelve
+        # None para que la vista pueda informar claramente que falta Wapiti.
+        if not WAPITI:
+            return None
+
         return [
 
         WAPITI,

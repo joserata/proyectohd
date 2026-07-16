@@ -1,10 +1,11 @@
-﻿from functools import wraps
+from functools import wraps
 
 from django.shortcuts import redirect
 
 ROLE_HOME = {
     'developer': 'dashboard',
     'tester': 'pruebastest_index',
+    'security': 'security:dashboard',
 }
 
 ROLE_LABELS = {
@@ -28,7 +29,6 @@ def get_profile(request):
     if path.startswith('/pruebastest/'):
         return 'tester'
     return 'developer'
-    return 'security'
 
 
 def profile_home(profile):

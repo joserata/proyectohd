@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estado de Seguridad{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.security-status-page{--primary:#0d3b66;--secondary:#1d72a0;--accent:#17bebb;background:radial-gradient(circle at top left,rgba(29,114,160,.10),transparent 28%),radial-gradient(circle at top right,rgba(23,190,187,.08),transparent 22%),linear-gradient(180deg,#f7fbfe,#eef4f8);color:#23374d}.security-status-page .container{max-width:1400px}.security-status-page .card{background:rgba(255,255,255,.94);border-color:rgba(13,59,102,.12);box-shadow:0 18px 40px rgba(13,59,102,.08)}.status-hero{position:relative;overflow:hidden;padding:34px;background:radial-gradient(circle at 86% 4%,rgba(23,190,187,.20),transparent 27%),linear-gradient(135deg,rgba(13,59,102,.12),rgba(29,114,160,.04)),#fff}.status-hero::after{content:'';position:absolute;inset:auto -12% -100px auto;width:360px;height:360px;border:1px solid rgba(23,190,187,.30);border-radius:50%;box-shadow:0 0 0 32px rgba(23,190,187,.05),0 0 0 64px rgba(29,114,160,.04)}.status-hero h1{position:relative;margin:8px 0;font-size:clamp(2rem,4vw,3.4rem);color:#0d3b66;letter-spacing:-.04em}.status-hero p{position:relative;max-width:660px;margin:0;color:#557087;font-size:1.05rem}.status-kicker,.live-chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 11px;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.status-kicker{color:#0f766e;background:rgba(23,190,187,.11);border:1px solid rgba(23,190,187,.22)}.live-chip{color:#0d3b66;background:rgba(13,59,102,.07);border:1px solid rgba(13,59,102,.13)}.live-chip::before{content:'';width:8px;height:8px;border-radius:50%;background:#17bebb;box-shadow:0 0 0 0 rgba(23,190,187,.7);animation:pulse 1.8s infinite}@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(23,190,187,0)}100%{box-shadow:0 0 0 0 rgba(23,190,187,0)}}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:20px 0}.metric{position:relative;overflow:hidden;padding:20px;border-radius:18px;border:1px solid rgba(13,59,102,.10);background:linear-gradient(145deg,#fff,#f7fbfe);box-shadow:0 10px 24px rgba(13,59,102,.05)}.metric::before{content:'';position:absolute;width:100px;height:100px;right:-35px;top:-35px;border-radius:50%;background:var(--metric-glow);filter:blur(8px);opacity:.20}.metric span{position:relative;display:block;color:#648097;font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.metric strong{position:relative;display:block;margin-top:8px;color:#0d3b66;font-size:2.1rem;letter-spacing:-.04em}.metric small{position:relative;color:#6b7a90}.chart-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}.chart-panel{padding:22px}.chart-panel h2{margin:0;color:#0d3b66;font-size:1.05rem}.chart-panel p{margin:6px 0 18px}.chart-wrap{position:relative;height:300px}.table-wrap{overflow-x:auto}.security-status-page table th{background:#f1f7fb;color:#1d5b82}.security-status-page table td{border-color:rgba(13,59,102,.10);color:#38526a}.status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;background:rgba(23,190,187,.12);color:#0f766e;font-size:.78rem;font-weight:700}.status-pill.warning{color:#a16207;background:#fef3c7}.status-pill.error{color:#be123c;background:#fff1f2}.header-actions{position:relative;display:flex;gap:10px;align-items:center;margin-top:24px}@media(max-width:900px){.metric-grid{grid-template-columns:repeat(2,1fr)}.chart-grid{grid-template-columns:1fr}}@media(max-width:520px){.metric-grid{grid-template-columns:1fr}.status-hero{padding:25px}.chart-wrap{height:240px}}
+</style>
+{% endblock %}
+
+{% block body_class %}pruebastest-page security-status-page{% endblock %}
+
+{% block content %}
+<section class="card status-hero">
+    <span class="status-kicker">Security intelligence</span>
+    <h1>Estado de tu superficie web.</h1>
+    <p>Un radar operativo que transforma los resultados de tus herramientas en una lectura clara de seguridad, calidad y estabilidad.</p>
+    <div class="header-actions"><span class="live-chip">Datos de escaneos ejecutados</span><a class="btn btn-secondary" href="{% url 'security:dashboard' %}">Ejecutar herramientas</a></div>
+</section>
+
+<section class="metric-grid">
+    <article class="metric" style="--metric-glow:#38bdf8"><span>Escaneos ejecutados</span><strong>{{ total_scans }}</strong><small>Actividad registrada</small></article>
+    <article class="metric" style="--metric-glow:#2dd4bf"><span>Estado de salud</span><strong>{{ average_score }}%</strong><small>{{ health_label }}</small></article>
+    <article class="metric" style="--metric-glow:#f59e0b"><span>Hallazgos</span><strong>{{ total_findings }}</strong><small>Detectados por las herramientas</small></article>
+    <article class="metric" style="--metric-glow:#a78bfa"><span>Duración media</span><strong>{{ average_duration }}s</strong><small>Por ejecución</small></article>
+</section>
+
+<section class="chart-grid">
+    <article class="card chart-panel"><h2>Ritmo de seguridad</h2><p class="muted">Puntaje y hallazgos de las últimas ejecuciones.</p><div class="chart-wrap"><canvas id="trendChart"></canvas></div></article>
+    <article class="card chart-panel"><h2>Resultado de ejecuciones</h2><p class="muted">Distribución por estado operativo.</p><div class="chart-wrap"><canvas id="statusChart"></canvas></div></article>
+</section>
+<section class="card chart-panel"><h2>Cobertura de herramientas</h2><p class="muted">Número de ejecuciones por herramienta. Pasa el cursor para ver cada valor.</p><div class="chart-wrap"><canvas id="toolsChart"></canvas></div></section>
+
+<section class="card"><h2>Actividad reciente</h2><p class="muted">Últimos escaneos que alimentan las métricas del panel.</p><div class="table-wrap"><table><thead><tr><th>Herramienta</th><th>Estado</th><th>Puntaje</th><th>Hallazgos</th><th>Duración</th><th>Ejecutado</th></tr></thead><tbody>{% for scan in latest_scans %}<tr><td>{{ scan.get_tool_display }}</td><td><span class="status-pill {% if scan.status == 'warning' %}warning{% elif scan.status == 'error' %}error{% endif %}">{{ scan.get_status_display }}</span></td><td>{{ scan.score|default:'—' }}</td><td>{{ scan.findings }}</td><td>{{ scan.duration }}s</td><td>{{ scan.started_at|date:'d/m/Y H:i' }}</td></tr>{% empty %}<tr><td colspan="6">Aún no hay escaneos. Ejecuta una herramienta para comenzar a medir el estado.</td></tr>{% endfor %}</tbody></table></div></section>
+
+{{ status_chart|json_script:'security-status-data' }}
+{{ tool_chart|json_script:'security-tools-data' }}
+{{ trend_chart|json_script:'security-trend-data' }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const status = JSON.parse(document.getElementById('security-status-data').textContent);
+    const tools = JSON.parse(document.getElementById('security-tools-data').textContent);
+    const trend = JSON.parse(document.getElementById('security-trend-data').textContent);
+    const palette = ['#17bebb','#1d72a0','#f5a623','#7c3aed','#e76f51'];
+    const tooltip = { backgroundColor:'#ffffff',titleColor:'#0d3b66',bodyColor:'#38526a',borderColor:'rgba(13,59,102,.16)',borderWidth:1,padding:12,cornerRadius:10,displayColors:true };
+    new Chart(document.getElementById('statusChart'), { type:'doughnut', data:{labels:status.labels,datasets:[{data:status.values,backgroundColor:palette,borderWidth:0,hoverOffset:12}]}, options:{cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'#38526a',padding:16,usePointStyle:true}},tooltip} } });
+    new Chart(document.getElementById('toolsChart'), { type:'bar', data:{labels:tools.labels,datasets:[{label:'Ejecuciones',data:tools.values,borderRadius:9,backgroundColor:'#1d72a0',hoverBackgroundColor:'#17bebb'}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip},scales:{x:{ticks:{color:'#38526a'},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#648097',precision:0},grid:{color:'rgba(13,59,102,.10)'}}} } });
+    new Chart(document.getElementById('trendChart'), { data:{labels:trend.labels,datasets:[{type:'line',label:'Puntaje',data:trend.scores,borderColor:'#17bebb',backgroundColor:'rgba(23,190,187,.16)',fill:true,tension:.38,pointRadius:4,pointHoverRadius:7,yAxisID:'score'},{type:'bar',label:'Hallazgos',data:trend.findings,backgroundColor:'rgba(29,114,160,.35)',borderRadius:6,yAxisID:'findings'}]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#38526a',usePointStyle:true}},tooltip},scales:{x:{ticks:{color:'#648097',maxRotation:0},grid:{display:false}},score:{position:'left',min:0,max:100,ticks:{color:'#0f766e',callback:(value)=>value+'%'},grid:{color:'rgba(13,59,102,.10)'}},findings:{position:'right',beginAtZero:true,ticks:{color:'#1d72a0',precision:0},grid:{drawOnChartArea:false}}} } });
+})();
+</script>
+{% endblock %}

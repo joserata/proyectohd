@@ -1,4 +1,4 @@
-﻿from unittest import SkipTest, skipUnless
+from unittest import SkipTest, skipUnless
 
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -139,6 +139,22 @@ class GestionSoftwareModelsTest(TestCase):
         self.assertContains(response, 'Playwright')
         self.assertContains(response, 'Semgrep')
         self.assertContains(response, 'pylint')
+
+    def test_login_redirects_security_profile_to_security_dashboard(self):
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': self.user.username,
+                'password': '12345678',
+                'profile': 'security',
+            },
+        )
+
+        self.assertRedirects(response, reverse('security:dashboard'))
+
+        dashboard_response = self.client.get(reverse('security:dashboard'))
+        self.assertEqual(dashboard_response.status_code, 200)
+        self.assertTemplateUsed(dashboard_response, 'security/dashboard.html')
 
 
 @skipUnless(webdriver is not None, 'Selenium no está instalado')

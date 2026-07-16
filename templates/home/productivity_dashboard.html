@@ -2,18 +2,29 @@
 
 {% block title %}Productividad{% endblock %}
 
-{% block content %}
-<div class="card">
+{% block extra_head %}
+<style>
+    #comparison-chart { background: radial-gradient(circle at top left, #eff6ff, #ffffff 50%); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    #comparison-chart polyline { filter: drop-shadow(0 4px 4px rgba(15, 76, 129, .18)); transition: opacity .2s ease; }
+    .comparison-point { cursor: crosshair; stroke: #fff; stroke-width: 1.1; transition: r .16s ease, filter .16s ease; }
+    .comparison-point:hover, .comparison-point:focus { r: 2.8; filter: drop-shadow(0 3px 4px rgba(15, 23, 42, .28)); outline: none; }
+    #comparison-tooltip { position: fixed; z-index: 20; pointer-events: none; min-width: 155px; padding: 10px 12px; border: 1px solid rgba(148,163,184,.35); border-radius: 12px; background: rgba(15,23,42,.94); color: #fff; box-shadow: 0 12px 28px rgba(15,23,42,.22); font-size: .82rem; line-height: 1.45; opacity: 0; transform: translateY(4px); transition: opacity .14s ease, transform .14s ease; }
+    #comparison-tooltip.is-visible { opacity: 1; transform: translateY(0); }
+    #comparison-tooltip strong { display: block; font-size: .9rem; }
+</style>
+{% endblock %}
+
+{% block content %}<div class="card">
     <h2>Seguimiento de productividad</h2>
     <p class="muted">Resumen dinámico por producción y rendimiento, con métricas de cada perfil de desarrollador.</p>
     <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;">
-        <select name="developer">
-            <option value="">Todos los desarrolladores</option>
+        <label for="developers">Desarrolladores a comparar</label>
+        <select id="developers" name="developer" multiple size="4" aria-describedby="developers-help">
             {% for user in users %}
-                <option value="{{ user.id }}" {% if selected_developer == user.id|stringformat:'s' %}selected{% endif %}>{{ user.username }}</option>
+                <option value="{{ user.id }}" {% if user.id|stringformat:'s' in selected_developers %}selected{% endif %}>{{ user.username }}</option>
             {% endfor %}
         </select>
-        <select name="week">
+        <small id="developers-help" class="muted">Selecciona varios desarrolladores para compararlos. Sin selección se muestran todos.</small>        <select name="week" aria-label="Semana de inicio">
             <option value="">Todas las semanas</option>
             {% for week in weeks %}
                 <option value="{{ week|date:'Y-m-d' }}" {% if selected_week == week|date:'Y-m-d' %}selected{% endif %}>{{ week }}</option>
@@ -72,6 +83,22 @@
     </table>
 </div>
 
+<div class="card">
+    <h3>Comparación semanal entre desarrolladores</h3>
+    <p class="muted">Cada línea representa el porcentaje de avance de un desarrollador. El filtro de semana limita los datos mostrados.</p>
+    {% if comparison_weeks %}
+        <div style="overflow-x:auto;background:#f8fafc;padding:16px;border-radius:10px;">
+            <svg id="comparison-chart" viewBox="0 0 100 100" role="img" aria-label="Gráfico lineal comparativo de productividad" style="min-width:620px;width:100%;height:300px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px;box-sizing:border-box;">
+                <line x1="10" y1="90" x2="90" y2="90" stroke="#94a3b8" stroke-width="1"></line>
+                <line x1="10" y1="20" x2="10" y2="90" stroke="#94a3b8" stroke-width="1"></line>
+                <text x="7" y="22" text-anchor="end" fill="#64748b" font-size="3">100%</text><text x="7" y="57" text-anchor="end" fill="#64748b" font-size="3">50%</text><text x="7" y="91" text-anchor="end" fill="#64748b" font-size="3">0%</text>
+                {% for week in comparison_weeks %}<line x1="{{ week.x }}" y1="20" x2="{{ week.x }}" y2="90" stroke="#e2e8f0" stroke-width="0.5"></line><text x="{{ week.x }}" y="96" text-anchor="middle" fill="#64748b" font-size="3">{{ week.label }}</text>{% endfor %}
+                {% for series in comparison_series %}{% if series.points %}<polyline fill="none" stroke="{{ series.color }}" stroke-width="2" points="{{ series.points_svg }}"></polyline>{% for point in series.points %}<circle class="comparison-point" cx="{{ point.x }}" cy="{{ point.y }}" r="1.6" fill="{{ series.color }}" data-developer="{{ series.name }}" data-week="{{ point.week }}" data-value="{{ point.value }}" tabindex="0"><title>{{ series.name }}: {{ point.value }}% ({{ point.week }})</title></circle>{% endfor %}{% endif %}{% endfor %}
+            </svg>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;">{% for series in comparison_series %}{% if series.points %}<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:{{ series.color }};"></span>{{ series.name }}</span>{% endif %}{% endfor %}</div>
+        </div>
+    {% else %}<p class="muted">No hay registros de productividad para los filtros seleccionados.</p>{% endif %}
+</div>
 <div class="card">
     <h3>Gráfico lineal de rendimiento y productividad</h3>
     <div style="background:#f8fafc;padding:16px;border-radius:10px;">
@@ -190,4 +217,37 @@
         </tbody>
     </table>
 </div>
+<div id="comparison-tooltip" role="status" aria-live="polite"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const tooltip = document.getElementById('comparison-tooltip');
+    const points = document.querySelectorAll('.comparison-point');
+    if (!tooltip || !points.length) return;
+    const showTooltip = (point, event) => {
+        const developer = document.createElement('strong');
+        developer.textContent = point.dataset.developer;
+        const week = document.createElement('span');
+        week.textContent = `Semana: ${point.dataset.week}`;
+        const progress = document.createElement('span');
+        progress.textContent = `Avance: ${point.dataset.value}%`;
+        tooltip.replaceChildren(developer, week, progress);
+        tooltip.classList.add('is-visible');
+        const x = event?.clientX ?? point.getBoundingClientRect().right;
+        const y = event?.clientY ?? point.getBoundingClientRect().top;
+        tooltip.style.left = `${Math.min(x + 14, window.innerWidth - 180)}px`;
+        tooltip.style.top = `${Math.min(y + 14, window.innerHeight - 90)}px`;
+    };
+    const hideTooltip = () => tooltip.classList.remove('is-visible');
+    points.forEach((point) => {
+        point.addEventListener('pointerenter', (event) => showTooltip(point, event));
+        point.addEventListener('pointermove', (event) => showTooltip(point, event));
+        point.addEventListener('pointerleave', hideTooltip);
+        point.addEventListener('focus', () => showTooltip(point));
+        point.addEventListener('blur', hideTooltip);
+    });
+})();
+</script>
 {% endblock %}

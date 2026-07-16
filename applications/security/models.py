@@ -11,9 +11,21 @@ class SecurityScan(models.Model):
         ("bandit", "Bandit"),
         ("semgrep", "Semgrep"),
         ("safety", "Safety"),
+        ("pip_audit", "Pip Audit"),
         ("pylint", "Pylint"),
+        ("flake8", "Flake8"),
+        ("black", "Black"),
+        ("mypy", "Mypy"),
+        ("detect_secrets", "Detect Secrets"),
+        ("radon", "Radon"),
+        ("xenon", "Xenon"),
+        ("coverage", "Coverage"),
+        ("pytest", "Pytest"),
         ("playwright", "Playwright"),
         ("locust", "Locust"),
+        ("pip_licenses", "Pip Licenses"),
+        ("cyclonedx", "CycloneDX"),
+        ("wapiti", "Wapiti"),
     ]
 
     STATUS_CHOICES = [
